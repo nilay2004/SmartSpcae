@@ -1,5 +1,5 @@
 /// <reference path="../../lib/three.d.ts" />
-/// <reference path="../../lib/jQuery.d.ts" />
+/// <reference path="../../lib/jquery.d.ts" />
 /// <reference path="floorplan.ts" />
 /// <reference path="scene.ts" />
 
@@ -77,7 +77,7 @@ module BP3D.Model {
       return JSON.stringify(room);
     }
 
-    private newRoom(floorplan: string, items) {
+    private newRoom(floorplan: string, items: any[]) {
       this.scene.clearItems();
       this.floorplan.loadFloorplan(floorplan);
       items.forEach((item) => {

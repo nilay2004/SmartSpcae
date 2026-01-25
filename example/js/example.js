@@ -290,6 +290,19 @@ var SideMenu = function(blueprint3d, floorplanControls, modalEffects) {
     currentState.div.hide()
     newState.div.show()
 
+    // show layouts panel only when Design (3D) tab is active
+    if (newState === scope.states.DEFAULT) {
+      $("#layouts-panel").show().css({ visibility: "visible", display: "block" });
+      // Scroll layout panel into view within sidebar; refresh slider width
+      setTimeout(function() {
+        var el = document.getElementById("layouts-panel");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        if (window.layoutSlider && window.layoutSlider.refresh) window.layoutSlider.refresh();
+      }, 80);
+    } else {
+      $("#layouts-panel").hide();
+    }
+
     // custom actions
     if (newState == scope.states.FLOORPLAN) {
       floorplanControls.updateFloorplanView();
@@ -314,7 +327,15 @@ var SideMenu = function(blueprint3d, floorplanControls, modalEffects) {
   function initLeftMenu() {
     $( window ).resize( handleWindowResize );
     handleWindowResize();
+
+    // Initialize layout slider (pass setCurrentState function)
+    initLayoutSlider(blueprint3d, function(state) {
+      setCurrentState(state);
+    }, scope.states);
   }
+  
+  // Expose setCurrentState for external use
+  this.setCurrentState = setCurrentState;
 
   function handleWindowResize() {
     $(".sidebar").height(window.innerHeight);
@@ -503,6 +524,245 @@ var mainControls = function(blueprint3d) {
 }
 
 /*
+ * Layout Slider
+ */
+
+var LayoutSlider = function(blueprint3d, setStateFn, states) {
+  var currentSlide = 0;
+  var layouts = [
+    {
+      key: "1rk",
+      title: "1RK",
+      subtitle: "1 Room + Kitchen",
+      description: "Perfect for studio apartments with an open kitchen area."
+    },
+    {
+      key: "1bhk",
+      title: "1BHK",
+      subtitle: "1 Bedroom, Hall, Kitchen",
+      description: "Ideal for small families with separate bedroom and living space."
+    },
+    {
+      key: "2bhk",
+      title: "2BHK",
+      subtitle: "2 Bedrooms, Hall, Kitchen",
+      description: "Spacious layout with two bedrooms and a common hall area."
+    }
+  ];
+
+  function init() {
+    var slider = $("#layout-slider");
+    var dotsContainer = $(".layout-slider-dots");
+    
+    // Create slides
+    layouts.forEach(function(layout, index) {
+      // Create slide
+      var slide = $('<div class="layout-slide" data-layout="' + layout.key + '" data-index="' + index + '"></div>');
+      var preview = $('<div class="layout-preview"></div>');
+      var canvas = $('<canvas width="200" height="150"></canvas>');
+      preview.append(canvas);
+      
+      var title = $('<div class="layout-slide-title">' + layout.title + '</div>');
+      var subtitle = $('<div class="layout-slide-subtitle">' + layout.subtitle + '</div>');
+      
+      slide.append(preview);
+      slide.append(title);
+      slide.append(subtitle);
+      slider.append(slide);
+      
+      // Draw preview
+      drawLayoutPreview(canvas[0], layout.key);
+      
+      // Create dot
+      var dot = $('<button class="layout-slider-dot" data-index="' + index + '"></button>');
+      dotsContainer.append(dot);
+    });
+    
+    // Set first slide as active
+    showSlide(0);
+    
+    // Navigation handlers
+    $(".layout-slider-prev").on("click", function() {
+      prevSlide();
+    });
+    
+    $(".layout-slider-next").on("click", function() {
+      nextSlide();
+    });
+    
+    // Dot navigation
+    $(document).on("click", ".layout-slider-dot", function() {
+      var index = parseInt($(this).data("index"));
+      showSlide(index);
+    });
+    
+    // Slide click to load
+    $(document).on("click", ".layout-slide", function() {
+      var index = parseInt($(this).data("index"));
+      showSlide(index);
+    });
+    
+    // Load button
+    $(".layout-load-btn").on("click", function() {
+      loadCurrentLayout();
+    });
+  }
+  
+  function drawLayoutPreview(canvas, layoutKey) {
+    var ctx = canvas.getContext("2d");
+    var width = canvas.width;
+    var height = canvas.height;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = "#f5f5f5";
+    ctx.fillRect(0, 0, width, height);
+    
+    // Get layout data
+    var json = window.PRESET_LAYOUTS && window.PRESET_LAYOUTS[layoutKey];
+    if (!json) return;
+    
+    try {
+      var data = JSON.parse(json);
+      var corners = data.floorplan.corners;
+      var walls = data.floorplan.walls;
+      
+      if (!corners || !walls) return;
+      
+      // Calculate bounds
+      var minX = Infinity, maxX = -Infinity;
+      var minY = Infinity, maxY = -Infinity;
+      for (var id in corners) {
+        var c = corners[id];
+        if (c && typeof c.x === 'number' && typeof c.y === 'number') {
+          minX = Math.min(minX, c.x);
+          maxX = Math.max(maxX, c.x);
+          minY = Math.min(minY, c.y);
+          maxY = Math.max(maxY, c.y);
+        }
+      }
+      
+      if (minX === Infinity) return; // No valid corners
+      
+      var rangeX = maxX - minX;
+      var rangeY = maxY - minY;
+      if (rangeX === 0 || rangeY === 0) return;
+      
+      var padding = 15;
+      var scale = Math.min((width - padding * 2) / rangeX, (height - padding * 2) / rangeY);
+      var offsetX = (width - rangeX * scale) / 2;
+      var offsetY = (height - rangeY * scale) / 2;
+      
+      // Draw walls
+      ctx.strokeStyle = "#333";
+      ctx.lineWidth = 2.5;
+      walls.forEach(function(wall) {
+        var c1 = corners[wall.corner1];
+        var c2 = corners[wall.corner2];
+        if (c1 && c2 && typeof c1.x === 'number' && typeof c2.x === 'number') {
+          var x1 = offsetX + (c1.x - minX) * scale;
+          var y1 = offsetY + (c1.y - minY) * scale;
+          var x2 = offsetX + (c2.x - minX) * scale;
+          var y2 = offsetY + (c2.y - minY) * scale;
+          
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        }
+      });
+      
+      // Draw corners (small dots)
+      ctx.fillStyle = "#428bca";
+      for (var id in corners) {
+        var c = corners[id];
+        if (c && typeof c.x === 'number') {
+          var x = offsetX + (c.x - minX) * scale;
+          var y = offsetY + (c.y - minY) * scale;
+          ctx.beginPath();
+          ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    } catch (e) {
+      console.error("Error drawing layout preview:", e);
+    }
+  }
+  
+  function showSlide(index) {
+    if (index < 0 || index >= layouts.length) return;
+    
+    currentSlide = index;
+    var layout = layouts[index];
+    
+    // Update slider position (use 200 if wrapper not yet visible)
+    var slider = $("#layout-slider");
+    var slideWidth = slider.parent().width() || 200;
+    slider.css("transform", "translateX(-" + (index * slideWidth) + "px)");
+    
+    // Update active states
+    $(".layout-slide").removeClass("active");
+    $(".layout-slide[data-index='" + index + "']").addClass("active");
+    
+    $(".layout-slider-dot").removeClass("active");
+    $(".layout-slider-dot[data-index='" + index + "']").addClass("active");
+    
+    // Update info
+    $(".layout-title").text(layout.title + " - " + layout.subtitle);
+    $(".layout-description").text(layout.description);
+    $(".layout-load-btn").data("layout", layout.key);
+  }
+  
+  function nextSlide() {
+    var next = (currentSlide + 1) % layouts.length;
+    showSlide(next);
+  }
+  
+  function prevSlide() {
+    var prev = (currentSlide - 1 + layouts.length) % layouts.length;
+    showSlide(prev);
+  }
+  
+  function loadCurrentLayout() {
+    var layout = layouts[currentSlide];
+    var json = window.PRESET_LAYOUTS && window.PRESET_LAYOUTS[layout.key];
+    if (json) {
+      blueprint3d.three.getController().setSelectedObject(null);
+      blueprint3d.model.loadSerialized(json);
+      // Switch to Design view if not already there
+      if (setStateFn && states) {
+        setStateFn(states.DEFAULT);
+      }
+      blueprint3d.three.centerCamera();
+    }
+  }
+  
+  init();
+  
+  return {
+    showSlide: showSlide,
+    loadCurrentLayout: loadCurrentLayout,
+    refresh: function() { showSlide(currentSlide); }
+  };
+}
+
+function initLayoutSlider(blueprint3d, setStateFn, states) {
+  if (!$("#layouts-panel").length) return;
+  if (!window.PRESET_LAYOUTS) {
+    console.warn("Layouts: PRESET_LAYOUTS not loaded. Ensure layouts.js is loaded.");
+    $("#layout-slider").closest(".panel-body").append(
+      '<p class="text-warning small">Layout presets failed to load. Check console.</p>'
+    );
+    return;
+  }
+  try {
+    window.layoutSlider = new LayoutSlider(blueprint3d, setStateFn, states);
+  } catch (e) {
+    console.error("Layout slider init error:", e);
+  }
+}
+
+/*
  * Initialize!
  */
 
@@ -525,6 +785,7 @@ $(document).ready(function() {
   var textureSelector = new TextureSelector(blueprint3d, sideMenu);        
   var cameraButtons = new CameraButtons(blueprint3d);
   mainControls(blueprint3d);
+  
 
   // This serialization format needs work
   // Load a simple rectangle room

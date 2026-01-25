@@ -2,8 +2,8 @@
 
 	"metadata" :
 	{
-		"formatVersion" : 3.1,
-		"generatedBy"   : "Blender 2.65 Exporter",
+		"formatVersion" : 3.1;
+		"generatedBy"   : "Blender 2.65 Exporter";
 		"vertices"      : 1341,
 		"faces"         : 1006,
 		"normals"       : 208,
@@ -12,7 +12,7 @@
 		"materials"     : 1,
 		"morphTargets"  : 0,
 		"bones"         : 0
-	},
+	};
 
 	"scale" : 0.03900000,
 

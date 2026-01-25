@@ -1,4 +1,4 @@
-/// <reference path="../../lib/jQuery.d.ts" />
+/// <reference path="../../lib/jquery.d.ts" />
 /// <reference path="../model/floorplan.ts" />
 /// <reference path="floorplanner_view.ts" />
 
@@ -6,7 +6,7 @@ module BP3D.Floorplanner {
   /** how much will we move a corner to make a wall axis aligned (cm) */
   const snapTolerance = 25;
 
-  /** 
+  /**
    * The Floorplanner implements an interactive tool for creation of floorplans.
    */
   export class Floorplanner {
@@ -15,10 +15,10 @@ module BP3D.Floorplanner {
     public mode = 0;
 
     /** */
-    public activeWall = null;
+    public activeWall: Model.Wall | null = null;
 
     /** */
-    public activeCorner = null;
+    public activeCorner: Model.Corner | null = null;
 
     /** */
     public originX = 0;
@@ -33,7 +33,7 @@ module BP3D.Floorplanner {
     public targetY = 0;
 
     /** drawing state */
-    public lastNode = null;
+    public lastNode: Model.Corner | null = null;
 
     /** */
     private wallWidth: number;
@@ -42,7 +42,7 @@ module BP3D.Floorplanner {
     private modeResetCallbacks = $.Callbacks();
 
     /** */
-    private canvasElement;
+    private canvasElement: JQuery;
 
     /** */
     private view: FloorplannerView;
@@ -84,8 +84,8 @@ module BP3D.Floorplanner {
 
       this.view = new FloorplannerView(this.floorplan, this, canvas);
 
-      var cmPerFoot = 30.48;
-      var pixelsPerFoot = 15.0;
+      const cmPerFoot = 30.48;
+      const pixelsPerFoot = 15.0;
       this.cmPerPixel = cmPerFoot * (1.0 / pixelsPerFoot);
       this.pixelsPerCm = 1.0 / this.cmPerPixel;
 
@@ -95,12 +95,12 @@ module BP3D.Floorplanner {
 
       this.setMode(floorplannerModes.MOVE);
 
-      var scope = this;
+      const scope = this;
 
       this.canvasElement.mousedown(() => {
         scope.mousedown();
       });
-      this.canvasElement.mousemove((event) => {
+      this.canvasElement.mousemove((event: JQueryMouseEventObject) => {
         scope.mousemove(event);
       });
       this.canvasElement.mouseup(() => {
@@ -117,7 +117,7 @@ module BP3D.Floorplanner {
       });
 
       floorplan.roomLoadedCallbacks.add(() => {
-        scope.reset()
+        scope.reset();
       });
     }
 
@@ -167,31 +167,38 @@ module BP3D.Floorplanner {
     }
 
     /** */
-    private mousemove(event) {
+    private mousemove(event: any) {
       this.mouseMoved = true;
 
       // update mouse
       this.rawMouseX = event.clientX;
       this.rawMouseY = event.clientY;
 
-      this.mouseX = (event.clientX - this.canvasElement.offset().left) * this.cmPerPixel + this.originX * this.cmPerPixel;
-      this.mouseY = (event.clientY - this.canvasElement.offset().top) * this.cmPerPixel + this.originY * this.cmPerPixel;
+      this.mouseX =
+        (event.clientX - this.canvasElement.offset().left) * this.cmPerPixel +
+        this.originX * this.cmPerPixel;
+      this.mouseY =
+        (event.clientY - this.canvasElement.offset().top) * this.cmPerPixel +
+        this.originY * this.cmPerPixel;
 
       // update target (snapped position of actual mouse)
-      if (this.mode == floorplannerModes.DRAW || (this.mode == floorplannerModes.MOVE && this.mouseDown)) {
+      if (
+        this.mode == floorplannerModes.DRAW ||
+        (this.mode == floorplannerModes.MOVE && this.mouseDown)
+      ) {
         this.updateTarget();
       }
 
       // update object target
       if (this.mode != floorplannerModes.DRAW && !this.mouseDown) {
-        var hoverCorner = this.floorplan.overlappedCorner(this.mouseX, this.mouseY);
-        var hoverWall = this.floorplan.overlappedWall(this.mouseX, this.mouseY);
-        var draw = false;
+        const hoverCorner = this.floorplan.overlappedCorner(this.mouseX, this.mouseY);
+        const hoverWall = this.floorplan.overlappedWall(this.mouseX, this.mouseY);
+        let draw = false;
         if (hoverCorner != this.activeCorner) {
           this.activeCorner = hoverCorner;
           draw = true;
         }
-        // corner takes precendence
+        // corner takes precedence
         if (this.activeCorner == null) {
           if (hoverWall != this.activeWall) {
             this.activeWall = hoverWall;
@@ -207,8 +214,8 @@ module BP3D.Floorplanner {
 
       // panning
       if (this.mouseDown && !this.activeCorner && !this.activeWall) {
-        this.originX += (this.lastX - this.rawMouseX);
-        this.originY += (this.lastY - this.rawMouseY);
+        this.originX += this.lastX - this.rawMouseX;
+        this.originY += this.lastY - this.rawMouseY;
         this.lastX = this.rawMouseX;
         this.lastY = this.rawMouseY;
         this.view.draw();
@@ -238,7 +245,7 @@ module BP3D.Floorplanner {
 
       // drawing
       if (this.mode == floorplannerModes.DRAW && !this.mouseMoved) {
-        var corner = this.floorplan.newCorner(this.targetX, this.targetY);
+        const corner = this.floorplan.newCorner(this.targetX, this.targetY);
         if (this.lastNode != null) {
           this.floorplan.newWall(this.lastNode, corner);
         }
@@ -252,7 +259,6 @@ module BP3D.Floorplanner {
     /** */
     private mouseleave() {
       this.mouseDown = false;
-      //scope.setMode(scope.modes.MOVE);
     }
 
     /** */
@@ -278,9 +284,9 @@ module BP3D.Floorplanner {
 
     /** Sets the origin so that floorplan is centered */
     private resetOrigin() {
-      var centerX = this.canvasElement.innerWidth() / 2.0;
-      var centerY = this.canvasElement.innerHeight() / 2.0;
-      var centerFloorplan = this.floorplan.getCenter();
+      const centerX = this.canvasElement.innerWidth()! / 2.0;
+      const centerY = this.canvasElement.innerHeight()! / 2.0;
+      const centerFloorplan = this.floorplan.getCenter();
       this.originX = centerFloorplan.x * this.pixelsPerCm - centerX;
       this.originY = centerFloorplan.z * this.pixelsPerCm - centerY;
     }

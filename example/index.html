@@ -13,6 +13,7 @@
     <script src="js/bootstrap.js"></script>
     
     <script src="js/items.js"></script>
+    <script src="js/layouts.js"></script>
     <script src="js/example.js"></script>
   </head>
 
@@ -39,8 +40,47 @@
           </ul>
           <hr />
 
-          <!-- Context Menu -->
-          <div id="context-menu">
+          <!-- Layouts (shown when Design tab is active) -->
+          <div id="layouts-panel" style="display:none; padding: 0 20px; margin-bottom: 20px;">
+            <div class="panel panel-default">
+              <div class="panel-heading">Choose layout</div>
+              <div class="panel-body" style="color: #333333; padding: 15px;">
+                <p class="text-muted small" style="margin-bottom: 15px;">Browse and select a preset floor plan design.</p>
+                
+                <!-- Layout Slider -->
+                <div class="layout-slider-container">
+                  <div class="layout-slider-wrapper">
+                    <div class="layout-slider" id="layout-slider">
+                      <!-- Slides will be added dynamically -->
+                    </div>
+                  </div>
+                  
+                  <!-- Slider Navigation -->
+                  <div class="layout-slider-nav">
+                    <button class="btn btn-sm btn-default layout-slider-prev" type="button">
+                      <span class="glyphicon glyphicon-chevron-left"></span>
+                    </button>
+                    <div class="layout-slider-dots"></div>
+                    <button class="btn btn-sm btn-default layout-slider-next" type="button">
+                      <span class="glyphicon glyphicon-chevron-right"></span>
+                    </button>
+                  </div>
+                  
+                  <!-- Selected Layout Info -->
+                  <div class="layout-info" id="layout-info">
+                    <h5 class="layout-title"></h5>
+                    <p class="layout-description text-muted small"></p>
+                    <button class="btn btn-primary btn-block layout-load-btn" type="button" style="margin-top: 10px;">
+                      Load This Layout
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Context Menu (hidden until item selected) -->
+          <div id="context-menu" style="display: none;">
             <div style="margin: 0 20px">
               <span id="context-menu-name" class="lead"></span>
               <br /><br />
@@ -145,6 +185,8 @@
                <input type="file" class="hidden-input" id="loadFile">
                Load Plan
               </a>
+              <span class="btn-group">
+              </span>
             </div>
 
             <div id="camera-controls">

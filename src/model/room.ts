@@ -1,5 +1,5 @@
 /// <reference path="../../lib/three.d.ts" />
-/// <reference path="../../lib/jQuery.d.ts" />
+/// <reference path="../../lib/jquery.d.ts" />
 /// <reference path="../core/utils.ts" />
 /// <reference path="corner.ts" />
 /// <reference path="floorplan.ts" />
@@ -29,10 +29,10 @@ module BP3D.Model {
     public interiorCorners: Corner[] = [];
 
     /** */
-    private edgePointer = null;
+    private edgePointer: HalfEdge | null = null;
 
     /** floor plane for intersection testing */
-    public floorPlane: THREE.Mesh = null;
+    public floorPlane: THREE.Mesh | null = null;
 
     /** */
     private customTexture = false;
@@ -49,7 +49,7 @@ module BP3D.Model {
       this.generatePlane();
     }
 
-    private getUuid(): string {
+    public getUuid(): string {
       var cornerUuids = Core.Utils.map(this.corners, function (c) {
         return c.id;
       });
@@ -57,7 +57,7 @@ module BP3D.Model {
       return cornerUuids.join();
     }
 
-    public fireOnFloorChange(callback) {
+    public fireOnFloorChange(callback: any) {
       this.floorChangeCallbacks.add(callback);
     }
 
@@ -70,14 +70,14 @@ module BP3D.Model {
     /** 
      * textureStretch always true, just an argument for consistency with walls
      */
-    private setTexture(textureUrl: string, textureStretch, textureScale: number) {
+    private setTexture(textureUrl: string, textureStretch: any, textureScale: number) {
       var uuid = this.getUuid();
       this.floorplan.setFloorTexture(uuid, textureUrl, textureScale);
       this.floorChangeCallbacks.fire();
     }
 
     private generatePlane() {
-      var points = [];
+      var points: THREE.Vector2[] = [];
       this.interiorCorners.forEach((corner) => {
         points.push(new THREE.Vector2(
           corner.x,
@@ -94,7 +94,7 @@ module BP3D.Model {
       (<any>this.floorPlane).room = this; // js monkey patch
     }
 
-    private cycleIndex(index) {
+    private cycleIndex(index: number) {
       if (index < 0) {
         return index += this.corners.length;
       } else {
@@ -104,7 +104,7 @@ module BP3D.Model {
 
     private updateInteriorCorners() {
       var edge = this.edgePointer;
-      while (true) {
+      while (edge) {
         this.interiorCorners.push(edge.interiorStart());
         edge.generatePlane();
         if (edge.next === this.edgePointer) {
@@ -121,8 +121,8 @@ module BP3D.Model {
      */
     private updateWalls() {
 
-      var prevEdge = null;
-      var firstEdge = null;
+      var prevEdge: HalfEdge | null = null;
+      var firstEdge: HalfEdge | null = null;
 
       for (var i = 0; i < this.corners.length; i++) {
 
@@ -132,24 +132,26 @@ module BP3D.Model {
         // find if wall is heading in that direction
         var wallTo = firstCorner.wallTo(secondCorner);
         var wallFrom = firstCorner.wallFrom(secondCorner);
+        var edge: HalfEdge;
 
         if (wallTo) {
-          var edge = new HalfEdge(this, wallTo, true);
+          edge = new HalfEdge(this, wallTo, true);
         } else if (wallFrom) {
-          var edge = new HalfEdge(this, wallFrom, false);
+          edge = new HalfEdge(this, wallFrom, false);
         } else {
           // something horrible has happened
           console.log("corners arent connected by a wall, uh oh");
+          continue;
         }
 
         if (i == 0) {
           firstEdge = edge;
         } else {
-          edge.prev = prevEdge;
-          prevEdge.next = edge;
+          edge.prev = prevEdge!;
+          prevEdge!.next = edge;
           if (i + 1 == this.corners.length) {
-            firstEdge.prev = edge;
-            edge.next = firstEdge;
+            firstEdge!.prev = edge;
+            edge.next = firstEdge!;
           }
         }
         prevEdge = edge;

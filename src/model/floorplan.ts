@@ -1,4 +1,4 @@
-/// <reference path="../../lib/jQuery.d.ts" />
+/// <reference path="../../lib/jquery.d.ts" />
 /// <reference path="../../lib/three.d.ts" />
 /// <reference path="../core/utils.ts" />
 /// <reference path="wall.ts" />
@@ -45,7 +45,7 @@ module BP3D.Model {
     * floorTextures is a map of room UUIDs (string) to a object with
     * url and scale attributes.
     */
-    private floorTextures = {};
+    private floorTextures: {[key: string]: {url: string, scale: number}} = {};
 
     /** Constructs a floorplan. */
     constructor() {
@@ -53,7 +53,7 @@ module BP3D.Model {
 
     // hack
     public wallEdges(): HalfEdge[] {
-      var edges = []
+      var edges: HalfEdge[] = []
 
       this.walls.forEach((wall) => {
         if (wall.frontEdge) {
@@ -68,7 +68,7 @@ module BP3D.Model {
 
     // hack
     public wallEdgePlanes(): THREE.Mesh[] {
-      var planes = []
+      var planes: THREE.Mesh[] = []
       this.walls.forEach((wall) => {
         if (wall.frontEdge) {
           planes.push(wall.frontEdge.plane);
@@ -86,19 +86,19 @@ module BP3D.Model {
       });
     }
 
-    public fireOnNewWall(callback) {
+    public fireOnNewWall(callback: any) {
       this.new_wall_callbacks.add(callback);
     }
 
-    public fireOnNewCorner(callback) {
+    public fireOnNewCorner(callback: any) {
       this.new_corner_callbacks.add(callback);
     }
 
-    public fireOnRedraw(callback) {
+    public fireOnRedraw(callback: any) {
       this.redraw_callbacks.add(callback);
     }
 
-    public fireOnUpdatedRooms(callback) {
+    public fireOnUpdatedRooms(callback: any) {
       this.updated_rooms.add(callback);
     }
 
@@ -167,7 +167,7 @@ module BP3D.Model {
       return this.rooms;
     }
 
-    public overlappedCorner(x: number, y: number, tolerance?: number): Corner {
+    public overlappedCorner(x: number, y: number, tolerance?: number): Corner | null {
       tolerance = tolerance || defaultFloorPlanTolerance;
       for (var i = 0; i < this.corners.length; i++) {
         if (this.corners[i].distanceFrom(x, y) < tolerance) {
@@ -177,7 +177,7 @@ module BP3D.Model {
       return null;
     }
 
-    public overlappedWall(x: number, y: number, tolerance?: number): Wall {
+    public overlappedWall(x: number, y: number, tolerance?: number): Wall | null {
       tolerance = tolerance || defaultFloorPlanTolerance;
       for (var i = 0; i < this.walls.length; i++) {
         if (this.walls[i].distanceFrom(x, y) < tolerance) {
@@ -190,7 +190,7 @@ module BP3D.Model {
     // import and export -- cleanup
 
     public saveFloorplan() {
-      var floorplan = {
+      var floorplan: any = {
         corners: {},
         walls: [],
         wallTextures: [],
@@ -217,10 +217,10 @@ module BP3D.Model {
       return floorplan;
     }
 
-    public loadFloorplan(floorplan) {
+    public loadFloorplan(floorplan: any) {
       this.reset();
 
-      var corners = {};
+      var corners: {[key: string]: Corner} = {};
       if (floorplan == null || !('corners' in floorplan) || !('walls' in floorplan)) {
         return
       }
@@ -229,7 +229,7 @@ module BP3D.Model {
         corners[id] = this.newCorner(corner.x, corner.y, id);
       }
       var scope = this;
-      floorplan.walls.forEach((wall) => {
+      floorplan.walls.forEach((wall: any) => {
         var newWall = scope.newWall(
           corners[wall.corner1], corners[wall.corner2]);
         if (wall.frontTexture) {
@@ -265,7 +265,7 @@ module BP3D.Model {
 
     /** clear out obsolete floor textures */
     private updateFloorTextures() {
-      var uuids = Core.Utils.map(this.rooms, function (room) {
+      var uuids = Core.Utils.map(this.rooms, function (room: Room) {
         return room.getUuid();
       });
       for (var uuid in this.floorTextures) {
@@ -320,7 +320,7 @@ module BP3D.Model {
       return this.getDimensions(false);
     }
 
-    public getDimensions(center) {
+    public getDimensions(center: any) {
       center = center || false; // otherwise, get size
 
       var xMin = Infinity;
@@ -352,7 +352,6 @@ module BP3D.Model {
       // kinda hacky
       // find orphaned wall segments (i.e. not part of rooms) and
       // give them edges
-      var orphanWalls = []
       this.walls.forEach((wall) => {
         if (!wall.backEdge && !wall.frontEdge) {
           wall.orphan = true;
@@ -360,7 +359,6 @@ module BP3D.Model {
           back.generatePlane();
           var front = new HalfEdge(null, wall, true);
           front.generatePlane();
-          orphanWalls.push(wall);
         }
       });
 
@@ -385,8 +383,8 @@ module BP3D.Model {
 
       function _removeDuplicateRooms(roomArray: Corner[][]): Corner[][] {
         var results: Corner[][] = [];
-        var lookup = {};
-        var hashFunc = function (corner) {
+        var lookup: {[key: string]: boolean} = {};
+        var hashFunc = function (corner: Corner) {
           return corner.id
         };
         var sep = '-';
@@ -394,9 +392,10 @@ module BP3D.Model {
           // rooms are cycles, shift it around to check uniqueness
           var add = true;
           var room = roomArray[i];
+          var str = "";
           for (var j = 0; j < room.length; j++) {
             var roomShift = Core.Utils.cycle(room, j);
-            var str = Core.Utils.map(roomShift, hashFunc).join(sep);
+            str = Core.Utils.map(roomShift, hashFunc).join(sep);
             if (lookup.hasOwnProperty(str)) {
               add = false;
             }
@@ -415,11 +414,14 @@ module BP3D.Model {
           previousCorners: Corner[]
         }[] = [];
 
-        var next = {
+        var next: {
+          corner: Corner,
+          previousCorners: Corner[]
+        } | undefined = {
           corner: secondCorner,
           previousCorners: [firstCorner]
         };
-        var visited = {};
+        var visited: {[key: string]: boolean} = {};
         visited[firstCorner.id] = true;
 
         while (next) {

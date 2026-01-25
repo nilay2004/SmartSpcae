@@ -1,4 +1,4 @@
-/// <reference path="../../lib/jQuery.d.ts" />
+/// <reference path="../../lib/jquery.d.ts" />
 /// <reference path="../core/configuration.ts" />
 /// <reference path="../core/dimensioning.ts" />
 /// <reference path="../core/utils.ts" />
@@ -47,15 +47,16 @@ module BP3D.Floorplanner {
   export class FloorplannerView {
 
     /** The canvas element. */
-    private canvasElement: HTMLCanvasElement;
+    private canvasElement!: HTMLCanvasElement;
 
     /** The 2D context. */
-    private context;
+    private context!: CanvasRenderingContext2D;
 
     /** */
     constructor(private floorplan: Model.Floorplan, private viewmodel: Floorplanner, private canvas: string) {
-      this.canvasElement = <HTMLCanvasElement>document.getElementById(canvas);
-      this.context = this.canvasElement.getContext('2d');
+      this.canvasElement = document.getElementById(canvas) as HTMLCanvasElement;
+      // Ensure non-null 2D context
+      this.context = this.canvasElement.getContext('2d') as CanvasRenderingContext2D;
 
       var scope = this;
       $(window).resize(() => {
@@ -167,7 +168,7 @@ module BP3D.Floorplanner {
     }
 
     /** */
-    private drawEdge(edge: Model.HalfEdge, hover) {
+    private drawEdge(edge: Model.HalfEdge, hover: boolean) {
       var color = edgeColor;
       if (hover && this.viewmodel.mode == floorplannerModes.DELETE) {
         color = deleteColor;
@@ -178,10 +179,10 @@ module BP3D.Floorplanner {
 
       var scope = this;
       this.drawPolygon(
-        Core.Utils.map(corners, function (corner) {
+        Core.Utils.map(corners, (corner: Model.Corner) => {
           return scope.viewmodel.convertX(corner.x);
         }),
-        Core.Utils.map(corners, function (corner) {
+        Core.Utils.map(corners, (corner: Model.Corner) => {
           return scope.viewmodel.convertY(corner.y);
         }),
         false,
@@ -225,14 +226,14 @@ module BP3D.Floorplanner {
     }
 
     /** */
-    private drawTarget(x: number, y: number, lastNode) {
+    private drawTarget(x: number, y: number, lastNode: Model.Corner | null) {
       this.drawCircle(
         this.viewmodel.convertX(x),
         this.viewmodel.convertY(y),
         cornerRadiusHover,
         cornerColorHover
       );
-      if (this.viewmodel.lastNode) {
+      if (lastNode) {
         this.drawLine(
           this.viewmodel.convertX(lastNode.x),
           this.viewmodel.convertY(lastNode.y),
@@ -245,7 +246,7 @@ module BP3D.Floorplanner {
     }
 
     /** */
-    private drawLine(startX: number, startY: number, endX: number, endY: number, width: number, color) {
+    private drawLine(startX: number, startY: number, endX: number, endY: number, width: number, color: string) {
       // width is an integer
       // color is a hex string, i.e. #ff0000
       this.context.beginPath();
@@ -257,7 +258,15 @@ module BP3D.Floorplanner {
     }
 
     /** */
-    private drawPolygon(xArr, yArr, fill, fillColor, stroke?, strokeColor?, strokeWidth?) {
+    private drawPolygon(
+      xArr: number[],
+      yArr: number[],
+      fill: boolean,
+      fillColor?: string | null,
+      stroke?: boolean,
+      strokeColor?: string,
+      strokeWidth?: number
+    ) {
       // fillColor is a hex string, i.e. #ff0000
       fill = fill || false;
       stroke = stroke || false;
@@ -268,18 +277,24 @@ module BP3D.Floorplanner {
       }
       this.context.closePath();
       if (fill) {
-        this.context.fillStyle = fillColor;
+        if (fillColor) {
+          this.context.fillStyle = fillColor;
+        }
         this.context.fill();
       }
       if (stroke) {
-        this.context.lineWidth = strokeWidth;
-        this.context.strokeStyle = strokeColor;
+        if (typeof strokeWidth === 'number') {
+          this.context.lineWidth = strokeWidth;
+        }
+        if (strokeColor) {
+          this.context.strokeStyle = strokeColor;
+        }
         this.context.stroke();
       }
     }
 
     /** */
-    private drawCircle(centerX, centerY, radius, fillColor) {
+    private drawCircle(centerX: number, centerY: number, radius: number, fillColor: string) {
       this.context.beginPath();
       this.context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
       this.context.fillStyle = fillColor;
@@ -287,7 +302,7 @@ module BP3D.Floorplanner {
     }
 
     /** returns n where -gridSize/2 < n <= gridSize/2  */
-    private calculateGridOffset(n) {
+    private calculateGridOffset(n: number): number {
       if (n >= 0) {
         return (n + gridSpacing / 2.0) % gridSpacing - gridSpacing / 2.0;
       } else {

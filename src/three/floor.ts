@@ -1,34 +1,35 @@
 /// <reference path="../../lib/three.d.ts" />
 /// <reference path="../core/utils.ts" />
+/// <reference path="../model/room.ts" />
 
 module BP3D.Three {
-  export var Floor = function (scene, room) {
+  export class Floor {
+    private room: Model.Room;
+    private scene: any;
+    private floorPlane: THREE.Mesh | null = null;
+    private roofPlane: THREE.Mesh | null = null;
 
-    var scope = this;
+    constructor(scene: any, room: Model.Room) {
+      this.room = room;
+      this.scene = scene;
+      this.init();
+    }
 
-    this.room = room;
-    var scene = scene;
-
-    var floorPlane = null;
-    var roofPlane = null;
-
-    init();
-
-    function init() {
-      scope.room.fireOnFloorChange(redraw);
-      floorPlane = buildFloor();
+    private init() {
+      this.room.fireOnFloorChange(() => this.redraw());
+      this.floorPlane = this.buildFloor();
       // roofs look weird, so commented out
-      //roofPlane = buildRoof();
+      //this.roofPlane = this.buildRoof();
     }
 
-    function redraw() {
-      scope.removeFromScene();
-      floorPlane = buildFloor();
-      scope.addToScene();
+    private redraw() {
+      this.removeFromScene();
+      this.floorPlane = this.buildFloor();
+      this.addToScene();
     }
 
-    function buildFloor() {
-      var textureSettings = scope.room.getTexture();
+    private buildFloor(): THREE.Mesh {
+      var textureSettings = this.room.getTexture();
       // setup texture
       var floorTexture = THREE.ImageUtils.loadTexture(textureSettings.url);
       floorTexture.wrapS = THREE.RepeatWrapping;
@@ -46,8 +47,8 @@ module BP3D.Three {
       // http://stackoverflow.com/questions/19182298/how-to-texture-a-three-js-mesh-created-with-shapegeometry
       // scale down coords to fit 0 -> 1, then rescale
 
-      var points = [];
-      scope.room.interiorCorners.forEach((corner) => {
+      var points: THREE.Vector2[] = [];
+      this.room.interiorCorners.forEach((corner) => {
         points.push(new THREE.Vector2(
           corner.x / textureScale,
           corner.y / textureScale));
@@ -65,15 +66,15 @@ module BP3D.Three {
       return floor;
     }
 
-    function buildRoof() {
+    private buildRoof(): THREE.Mesh {
       // setup texture
       var roofMaterial = new THREE.MeshBasicMaterial({
         side: THREE.FrontSide,
         color: 0xe5e5e5
       });
 
-      var points = [];
-      scope.room.interiorCorners.forEach((corner) => {
+      var points: THREE.Vector2[] = [];
+      this.room.interiorCorners.forEach((corner) => {
         points.push(new THREE.Vector2(
           corner.x,
           corner.y));
@@ -87,17 +88,21 @@ module BP3D.Three {
       return roof;
     }
 
-    this.addToScene = function () {
-      scene.add(floorPlane);
-      //scene.add(roofPlane);
+    public addToScene() {
+      if (this.floorPlane) {
+        this.scene.add(this.floorPlane);
+      }
+      //this.scene.add(this.roofPlane);
       // hack so we can do intersect testing
-      scene.add(room.floorPlane);
+      this.scene.add(this.room.floorPlane);
     }
 
-    this.removeFromScene = function () {
-      scene.remove(floorPlane);
-      //scene.remove(roofPlane);
-      scene.remove(room.floorPlane);
+    public removeFromScene() {
+      if (this.floorPlane) {
+        this.scene.remove(this.floorPlane);
+      }
+      //this.scene.remove(this.roofPlane);
+      this.scene.remove(this.room.floorPlane);
     }
   }
 }

@@ -1,5 +1,5 @@
 /// <reference path="../../lib/three.d.ts" />
-/// <reference path="../../lib/jQuery.d.ts" />
+/// <reference path="../../lib/jquery.d.ts" />
 /// <reference path="../core/utils.ts" />
 
 module BP3D.Model {
@@ -13,10 +13,10 @@ module BP3D.Model {
   export class HalfEdge {
 
     /** The successor edge in CCW ??? direction. */
-    public next: HalfEdge;
+    public next: HalfEdge | undefined;
 
     /** The predecessor edge in CCW ??? direction. */
-    public prev: HalfEdge;
+    public prev: HalfEdge | undefined;
 
     /** */
     public offset: number;
@@ -25,7 +25,7 @@ module BP3D.Model {
     public height: number;
 
     /** used for intersection testing... not convinced this belongs here */
-    public plane: THREE.Mesh = null;
+    public plane: THREE.Mesh | null = null;
 
     /** transform from world coords to wall planes (z=0) */
     public interiorTransform = new THREE.Matrix4();
@@ -34,10 +34,10 @@ module BP3D.Model {
     public invInteriorTransform = new THREE.Matrix4();
 
     /** transform from world coords to wall planes (z=0) */
-    private exteriorTransform = new THREE.Matrix4();
+    public exteriorTransform = new THREE.Matrix4();
 
     /** transform from world coords to wall planes (z=0) */
-    private invExteriorTransform = new THREE.Matrix4();
+    public invExteriorTransform = new THREE.Matrix4();
 
     /** */
     public redrawCallbacks = $.Callbacks();
@@ -48,7 +48,7 @@ module BP3D.Model {
      * @param wall The corresponding wall.
      * @param front True if front side.
      */
-    constructor(private room: Room, public wall: Wall, private front: boolean) {
+    constructor(private room: Room | null, public wall: Wall, public front: boolean) {
       this.front = front || false;
 
       this.offset = wall.thickness / 2.0;
@@ -92,9 +92,9 @@ module BP3D.Model {
     /** 
      * this feels hacky, but need wall items
      */
-    public generatePlane = function () {
+    public generatePlane() {
 
-      function transformCorner(corner) {
+      function transformCorner(corner: any) {
         return new THREE.Vector3(corner.x, 0, corner.y);
       }
 
@@ -116,7 +116,7 @@ module BP3D.Model {
       this.plane = new THREE.Mesh(geometry,
         new THREE.MeshBasicMaterial());
       this.plane.visible = false;
-      this.plane.edge = this; // js monkey patch
+      (<any>this.plane).edge = this; // js monkey patch
 
       this.computeTransforms(
         this.interiorTransform, this.invInteriorTransform,
@@ -132,7 +132,7 @@ module BP3D.Model {
       return Core.Utils.distance(start.x, start.y, end.x, end.y);
     }
 
-    private computeTransforms(transform, invTransform, start, end) {
+    private computeTransforms(transform: any, invTransform: any, start: any, end: any) {
 
       var v1 = start;
       var v2 = end;
@@ -177,7 +177,7 @@ module BP3D.Model {
       }
     }
 
-    private getOppositeEdge(): HalfEdge {
+    private getOppositeEdge(): HalfEdge | null {
       if (this.front) {
         return this.wall.backEdge;
       } else {
@@ -236,13 +236,13 @@ module BP3D.Model {
     /** 
      * Gets CCW angle from v1 to v2
      */
-    private halfAngleVector(v1: HalfEdge, v2: HalfEdge): { x: number, y: number } {
+    private halfAngleVector(v1: HalfEdge | undefined, v2: HalfEdge | undefined): { x: number, y: number } {
       // make the best of things if we dont have prev or next
       if (!v1) {
-        var v1startX = v2.getStart().x - (v2.getEnd().x - v2.getStart().x);
-        var v1startY = v2.getStart().y - (v2.getEnd().y - v2.getStart().y);
-        var v1endX = v2.getStart().x;
-        var v1endY = v2.getStart().y;
+        var v1startX = v2!.getStart().x - (v2!.getEnd().x - v2!.getStart().x);
+        var v1startY = v2!.getStart().y - (v2!.getEnd().y - v2!.getStart().y);
+        var v1endX = v2!.getStart().x;
+        var v1endY = v2!.getStart().y;
       } else {
         var v1startX = <number>v1.getStart().x;
         var v1startY = <number>v1.getStart().y;
@@ -251,10 +251,10 @@ module BP3D.Model {
       }
 
       if (!v2) {
-        var v2startX = v1.getEnd().x;
-        var v2startY = v1.getEnd().y;
-        var v2endX = v1.getEnd().x + (v1.getEnd().x - v1.getStart().x);
-        var v2endY = v1.getEnd().y + (v1.getEnd().y - v1.getStart().y);
+        var v2startX = v1!.getEnd().x;
+        var v2startY = v1!.getEnd().y;
+        var v2endX = v1!.getEnd().x + (v1!.getEnd().x - v1!.getStart().x);
+        var v2endY = v1!.getEnd().y + (v1!.getEnd().y - v1!.getStart().y);
       } else {
         var v2startX = v2.getStart().x;
         var v2startY = v2.getStart().y;
@@ -263,15 +263,11 @@ module BP3D.Model {
       }
 
       // CCW angle between edges
-      var theta = Core.Utils.angle2pi(
-        v1startX - v1endX,
-        v1startY - v1endY,
-        v2endX - v1endX,
-        v2endY - v1endY);
+      var theta1 = Core.Utils.angle2pi(v1startX - v1endX, v1startY - v1endY, v2endX - v2startX, v2endY - v2startY);
 
       // cosine and sine of half angle
-      var cs = Math.cos(theta / 2.0);
-      var sn = Math.sin(theta / 2.0);
+      var cs = Math.cos(theta1 / 2.0);
+      var sn = Math.sin(theta1 / 2.0);
 
       // rotate v2
       var v2dx = v2endX - v2startX;

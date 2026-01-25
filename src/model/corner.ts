@@ -1,4 +1,4 @@
-/// <reference path="../../lib/jQuery.d.ts" />
+/// <reference path="../../lib/jquery.d.ts" />
 /// <reference path="../core/utils.ts" />
 /// <reference path="floorplan.ts" />
 /// <reference path="wall.ts" />
@@ -27,34 +27,37 @@ module BP3D.Model {
     /** Callbacks to be fired in case of action. */
     private action_callbacks = $.Callbacks();
 
+    /** The unique id of this corner. */
+    public id: string;
+
     /** Constructs a corner. 
      * @param floorplan The associated floorplan.
      * @param x X coordinate.
      * @param y Y coordinate.
      * @param id An optional unique id. If not set, created internally.
      */
-    constructor(private floorplan: Floorplan, public x: number, public y: number, public id?: string) {
+    constructor(private floorplan: Floorplan, public x: number, public y: number, id?: string) {
       this.id = id || Core.Utils.guid();
     }
 
     /** Add function to moved callbacks.
      * @param func The function to be added.
     */
-    public fireOnMove(func) {
+    public fireOnMove(func: (...args: any[]) => void) {
       this.moved_callbacks.add(func);
     }
 
     /** Add function to deleted callbacks.
      * @param func The function to be added.
      */
-    public fireOnDelete(func) {
+    public fireOnDelete(func: (...args: any[]) => void) {
       this.deleted_callbacks.add(func);
     }
 
     /** Add function to action callbacks.
      * @param func The function to be added.
      */
-    public fireOnAction(func) {
+    public fireOnAction(func: (...args: any[]) => void) {
       this.action_callbacks.add(func);
     }
 
@@ -107,7 +110,7 @@ module BP3D.Model {
       this.move(this.x + dx, this.y + dy);
     }
 
-    private fireAction(action) {
+    private fireAction(action: any) {
       this.action_callbacks.fire(action)
     }
 
@@ -117,7 +120,7 @@ module BP3D.Model {
     }
 
     /** Removes all walls. */
-    private removeAll() {
+    public removeAll() {
       for (var i = 0; i < this.wallStarts.length; i++) {
         this.wallStarts[i].remove();
       }
@@ -131,7 +134,7 @@ module BP3D.Model {
      * @param newX The new x position.
      * @param newY The new y position.
      */
-    private move(newX: number, newY: number) {
+    public move(newX: number, newY: number) {
       this.x = newX;
       this.y = newY;
       this.mergeWithIntersected();
@@ -232,7 +235,7 @@ module BP3D.Model {
      * @param corner A corner.
      * @return The associated wall or null.
      */
-    public wallTo(corner: Corner): Wall {
+    public wallTo(corner: Corner): Wall | null {
       for (var i = 0; i < this.wallStarts.length; i++) {
         if (this.wallStarts[i].getEnd() === corner) {
           return this.wallStarts[i];
@@ -245,7 +248,7 @@ module BP3D.Model {
      * @param corner A corner.
      * @return The associated wall or null.
      */
-    public wallFrom(corner: Corner): Wall {
+    public wallFrom(corner: Corner): Wall | null {
       for (var i = 0; i < this.wallEnds.length; i++) {
         if (this.wallEnds[i].getStart() === corner) {
           return this.wallEnds[i];
@@ -258,7 +261,7 @@ module BP3D.Model {
      * @param corner A corner.
      * @return The associated wall or null.
      */
-    public wallToOrFrom(corner: Corner): Wall {
+    public wallToOrFrom(corner: Corner): Wall | null {
       return this.wallTo(corner) || this.wallFrom(corner);
     }
 
@@ -315,8 +318,8 @@ module BP3D.Model {
     /** Ensure we do not have duplicate walls (i.e. same start and end points) */
     private removeDuplicateWalls() {
       // delete the wall between these corners, if it exists
-      var wallEndpoints = {};
-      var wallStartpoints = {};
+      var wallEndpoints: {[key: string]: boolean} = {};
+      var wallStartpoints: {[key: string]: boolean} = {};
       for (var i = this.wallStarts.length - 1; i >= 0; i--) {
         if (this.wallStarts[i].getEnd() === this) {
           // remove zero length wall 

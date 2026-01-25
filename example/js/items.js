@@ -95,7 +95,7 @@ $(document).ready(function() {
        {
       "name" : "Sectional - Olive",
       "image" : "models/thumbnails/thumbnail_img21o.jpg",
-      "model" : "models/js/we-crosby2piece-greenbaked.js",
+      "model" : "models/js/we-crosby2piece-greenbaked.json",
       "type" : "1"
     }, 
     {
@@ -151,6 +151,12 @@ $(document).ready(function() {
       "image" : "models/thumbnails/thumbnail_nyc2.jpg",
       "model" : "models/js/nyc-poster2.js",
       "type" : "2"
+    },
+    {
+      "name" : "Guest Chair",
+      "image" : "models/thumbnails/thumbnail_Church-Chair-oak-white_1024x1024.jpg",
+      "model" : "models/js/gus-churchchair-whiteoak.js",
+      "type" : "1"
     }
    /*     
    {

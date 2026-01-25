@@ -1,5 +1,5 @@
 /// <reference path="../../lib/three.d.ts" />
-/// <reference path="../../lib/jQuery.d.ts" />
+/// <reference path="../../lib/jquery.d.ts" />
 /// <reference path="../core/configuration.ts" />
 /// <reference path="../core/utils.ts" />
 /// <reference path="../items/item.ts" />
@@ -25,10 +25,10 @@ module BP3D.Model {
     private id: string;
 
     /** Front is the plane from start to end. */
-    public frontEdge: HalfEdge = null;
+    public frontEdge: HalfEdge | null = null;
 
     /** Back is the plane from end to start. */
-    public backEdge: HalfEdge = null;
+    public backEdge: HalfEdge | null = null;
 
     /** */
     public orphan = false;
@@ -88,23 +88,23 @@ module BP3D.Model {
       this.end.snapToAxis(tolerance);
     }
 
-    public fireOnMove(func) {
+    public fireOnMove(func: (...args: any[]) => void) {
       this.moved_callbacks.add(func);
     }
 
-    public fireOnDelete(func) {
+    public fireOnDelete(func: (...args: any[]) => void) {
       this.deleted_callbacks.add(func);
     }
 
-    public dontFireOnDelete(func) {
+    public dontFireOnDelete(func: (...args: any[]) => void) {
       this.deleted_callbacks.remove(func);
     }
 
-    public fireOnAction(func) {
+    public fireOnAction(func: (...args: any[]) => void) {
       this.action_callbacks.add(func)
     }
 
-    public fireAction(action) {
+    public fireAction(action: any) {
       this.action_callbacks.fire(action)
     }
 
@@ -180,13 +180,14 @@ module BP3D.Model {
      * @param corner The given corner.
      * @returns The opposite corner.
      */
-    private oppositeCorner(corner: Corner): Corner {
+    private oppositeCorner(corner: Corner): Corner | undefined {
       if (this.start === corner) {
         return this.end;
       } else if (this.end === corner) {
         return this.start;
       } else {
         console.log('Wall does not connect to corner');
+        return undefined;
       }
     }
   }
