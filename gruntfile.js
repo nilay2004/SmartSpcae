@@ -26,16 +26,17 @@ module.exports = function (grunt) {
   }
 
   configuration.typescript = {
-    options: {
-      target: "es5",
-      declaration: true,
-      sourceMap: true,
-      removeComments: false
+    blueprint3d: {
+      src: globalConfig.sources,
+      dest: globalConfig.outDir + "/" + globalConfig.moduleName + ".js",
+      options: {
+        module: 'amd',
+        target: "es5",
+        declaration: true,
+        sourceMap: true,
+        removeComments: false
+      }
     }
-  };
-  configuration.typescript[globalConfig.moduleName] = {
-    src: globalConfig.sources,
-    dest: globalConfig.outDir + "/" + globalConfig.moduleName + ".js"
   };
 
   configuration.typedoc = {

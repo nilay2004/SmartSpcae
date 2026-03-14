@@ -1,18 +1,18 @@
 /// <reference path="../../lib/three.d.ts" />
 
 module BP3D.Three {
-  export var Lights = function (scene, floorplan) {
+  export var Lights = function (scene: THREE.Scene, floorplan: any) {
 
-    var scope = this;
+    var scope: any = this;
     var scene = scene;
     var floorplan = floorplan;
 
     var tol = 1;
     var height = 300; // TODO: share with Blueprint.Wall
 
-    var dirLight;
+    var dirLight: THREE.DirectionalLight;
 
-    this.getDirLight = function () {
+    (this as any).getDirLight = function () {
       return dirLight;
     }
 
@@ -33,7 +33,7 @@ module BP3D.Three {
       dirLight.shadowBias = -0.0001;
       dirLight.shadowDarkness = 0.2;
       dirLight.visible = true;
-      dirLight.shadowCameraVisible = false;
+      // shadowCameraVisible is deprecated; use a helper if debug visualization is needed
 
       scene.add(dirLight);
       scene.add(dirLight.target);
@@ -58,12 +58,12 @@ module BP3D.Three {
       dirLight.shadowCameraTop = d;
       dirLight.shadowCameraBottom = -d;
       // this is necessary for updates
-      if (dirLight.shadowCamera) {
-        dirLight.shadowCamera.left = dirLight.shadowCameraLeft;
-        dirLight.shadowCamera.right = dirLight.shadowCameraRight;
-        dirLight.shadowCamera.top = dirLight.shadowCameraTop;
-        dirLight.shadowCamera.bottom = dirLight.shadowCameraBottom;
-        dirLight.shadowCamera.updateProjectionMatrix();
+      if ((dirLight.shadow as any).camera) {
+        (dirLight.shadow as any).camera.left = dirLight.shadowCameraLeft;
+        (dirLight.shadow as any).camera.right = dirLight.shadowCameraRight;
+        (dirLight.shadow as any).camera.top = dirLight.shadowCameraTop;
+        (dirLight.shadow as any).camera.bottom = dirLight.shadowCameraBottom;
+        (dirLight.shadow as any).camera.updateProjectionMatrix();
       }
     }
 

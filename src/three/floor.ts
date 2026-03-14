@@ -5,11 +5,11 @@
 module BP3D.Three {
   export class Floor {
     private room: Model.Room;
-    private scene: any;
+    private scene: THREE.Scene;
     private floorPlane: THREE.Mesh | null = null;
     private roofPlane: THREE.Mesh | null = null;
 
-    constructor(scene: any, room: Model.Room) {
+    constructor(scene: THREE.Scene, room: Model.Room) {
       this.room = room;
       this.scene = scene;
       this.init();
@@ -31,7 +31,9 @@ module BP3D.Three {
     private buildFloor(): THREE.Mesh {
       var textureSettings = this.room.getTexture();
       // setup texture
-      var floorTexture = THREE.ImageUtils.loadTexture(textureSettings.url);
+      var loader = new THREE.TextureLoader();
+      loader.setCrossOrigin("anonymous");
+      var floorTexture = loader.load(textureSettings.url);
       floorTexture.wrapS = THREE.RepeatWrapping;
       floorTexture.wrapT = THREE.RepeatWrapping;
       floorTexture.repeat.set(1, 1);
@@ -94,7 +96,9 @@ module BP3D.Three {
       }
       //this.scene.add(this.roofPlane);
       // hack so we can do intersect testing
-      this.scene.add(this.room.floorPlane);
+      if (this.room.floorPlane) {
+        this.scene.add(this.room.floorPlane);
+      }
     }
 
     public removeFromScene() {
@@ -102,7 +106,9 @@ module BP3D.Three {
         this.scene.remove(this.floorPlane);
       }
       //this.scene.remove(this.roofPlane);
-      this.scene.remove(this.room.floorPlane);
+      if (this.room.floorPlane) {
+        this.scene.remove(this.room.floorPlane);
+      }
     }
   }
 }

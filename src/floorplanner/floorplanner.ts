@@ -15,10 +15,10 @@ module BP3D.Floorplanner {
     public mode = 0;
 
     /** */
-    public activeWall: Model.Wall | null = null;
+    public activeWall: Model.Wall = null;
 
     /** */
-    public activeCorner: Model.Corner | null = null;
+    public activeCorner: Model.Corner = null;
 
     /** */
     public originX = 0;
@@ -33,7 +33,7 @@ module BP3D.Floorplanner {
     public targetY = 0;
 
     /** drawing state */
-    public lastNode: Model.Corner | null = null;
+    public lastNode: Model.Corner = null;
 
     /** */
     private wallWidth: number;
@@ -100,7 +100,7 @@ module BP3D.Floorplanner {
       this.canvasElement.mousedown(() => {
         scope.mousedown();
       });
-      this.canvasElement.mousemove((event: JQueryMouseEventObject) => {
+      this.canvasElement.mousemove((event: any) => {
         scope.mousemove(event);
       });
       this.canvasElement.mouseup(() => {
@@ -284,8 +284,8 @@ module BP3D.Floorplanner {
 
     /** Sets the origin so that floorplan is centered */
     private resetOrigin() {
-      const centerX = this.canvasElement.innerWidth()! / 2.0;
-      const centerY = this.canvasElement.innerHeight()! / 2.0;
+      const centerX = this.canvasElement.innerWidth() / 2.0;
+      const centerY = this.canvasElement.innerHeight() / 2.0;
       const centerFloorplan = this.floorplan.getCenter();
       this.originX = centerFloorplan.x * this.pixelsPerCm - centerX;
       this.originY = centerFloorplan.z * this.pixelsPerCm - centerY;

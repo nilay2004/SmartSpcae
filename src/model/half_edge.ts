@@ -13,10 +13,10 @@ module BP3D.Model {
   export class HalfEdge {
 
     /** The successor edge in CCW ??? direction. */
-    public next: HalfEdge | undefined;
+    public next: HalfEdge = null;
 
     /** The predecessor edge in CCW ??? direction. */
-    public prev: HalfEdge | undefined;
+    public prev: HalfEdge = null;
 
     /** */
     public offset: number;
@@ -25,7 +25,7 @@ module BP3D.Model {
     public height: number;
 
     /** used for intersection testing... not convinced this belongs here */
-    public plane: THREE.Mesh | null = null;
+    public plane: THREE.Mesh = null;
 
     /** transform from world coords to wall planes (z=0) */
     public interiorTransform = new THREE.Matrix4();
@@ -48,7 +48,7 @@ module BP3D.Model {
      * @param wall The corresponding wall.
      * @param front True if front side.
      */
-    constructor(private room: Room | null, public wall: Wall, public front: boolean) {
+    constructor(private room: Room, public wall: Wall, public front: boolean) {
       this.front = front || false;
 
       this.offset = wall.thickness / 2.0;
@@ -177,7 +177,7 @@ module BP3D.Model {
       }
     }
 
-    private getOppositeEdge(): HalfEdge | null {
+    private getOppositeEdge(): HalfEdge {
       if (this.front) {
         return this.wall.backEdge;
       } else {
@@ -236,7 +236,7 @@ module BP3D.Model {
     /** 
      * Gets CCW angle from v1 to v2
      */
-    private halfAngleVector(v1: HalfEdge | undefined, v2: HalfEdge | undefined): { x: number, y: number } {
+    private halfAngleVector(v1: HalfEdge, v2: HalfEdge): { x: number, y: number } {
       // make the best of things if we dont have prev or next
       if (!v1) {
         var v1startX = v2!.getStart().x - (v2!.getEnd().x - v2!.getStart().x);

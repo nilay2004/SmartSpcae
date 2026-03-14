@@ -25,10 +25,10 @@ module BP3D.Model {
     private id: string;
 
     /** Front is the plane from start to end. */
-    public frontEdge: HalfEdge | null = null;
+    public frontEdge: HalfEdge = null;
 
     /** Back is the plane from end to start. */
-    public backEdge: HalfEdge | null = null;
+    public backEdge: HalfEdge = null;
 
     /** */
     public orphan = false;
@@ -82,7 +82,7 @@ module BP3D.Model {
       this.orphan = false;
     }
 
-    private snapToAxis(tolerance: number) {
+    public snapToAxis(tolerance: number) {
       // order here is important, but unfortunately arbitrary
       this.start.snapToAxis(tolerance);
       this.end.snapToAxis(tolerance);
@@ -108,7 +108,7 @@ module BP3D.Model {
       this.action_callbacks.fire(action)
     }
 
-    private relativeMove(dx: number, dy: number) {
+    public relativeMove(dx: number, dy: number) {
       this.start.relativeMove(dx, dy);
       this.end.relativeMove(dx, dy);
     }
@@ -180,7 +180,7 @@ module BP3D.Model {
      * @param corner The given corner.
      * @returns The opposite corner.
      */
-    private oppositeCorner(corner: Corner): Corner | undefined {
+    private oppositeCorner(corner: Corner): Corner {
       if (this.start === corner) {
         return this.end;
       } else if (this.end === corner) {

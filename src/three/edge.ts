@@ -13,7 +13,7 @@ module BP3D.Three {
 
     private planes: THREE.Mesh[] = [];
     private basePlanes: THREE.Mesh[] = []; // always visible
-    private texture: THREE.Texture | undefined = undefined;
+    private texture: THREE.Texture | null = null;
 
     // private lightMap = THREE.ImageUtils.loadTexture("rooms/textures/walllightmap.png");
     private fillerColor = 0xdddddd;
@@ -123,7 +123,9 @@ module BP3D.Three {
       var stretch = textureData.stretch;
       var url = textureData.url;
       var scale = textureData.scale;
-      this.texture = THREE.ImageUtils.loadTexture(url, undefined, cb);
+      var loader = new THREE.TextureLoader();
+      loader.setCrossOrigin("anonymous");
+      this.texture = loader.load(url, cb);
       if (!stretch) {
         var height = this.wall.height;
         var width = this.edge.interiorDistance();
@@ -267,7 +269,7 @@ module BP3D.Three {
       return mesh;
     }
 
-    private buildSideFillter(p1, p2, height, color) {
+    private buildSideFillter(p1: { x: number, y: number }, p2: { x: number, y: number }, height: number, color: number) {
       var points = [
         this.toVec3(p1),
         this.toVec3(p2),
@@ -291,7 +293,7 @@ module BP3D.Three {
       return filler;
     }
 
-    private buildFiller(edge, height, side, color) {
+    private buildFiller(edge: Model.HalfEdge, height: number, side: number, color: number) {
       var points = [
         this.toVec2(edge.exteriorStart()),
         this.toVec2(edge.exteriorEnd()),
@@ -313,11 +315,11 @@ module BP3D.Three {
       return filler;
     }
 
-    private toVec2(pos) {
+    private toVec2(pos: { x: number, y: number }) {
       return new THREE.Vector2(pos.x, pos.y);
     }
 
-    private toVec3(pos, height?) {
+    private toVec3(pos: { x: number, y: number }, height?: number) {
       height = height || 0;
       return new THREE.Vector3(pos.x, height, pos.y);
     }

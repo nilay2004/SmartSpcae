@@ -2,7 +2,7 @@
 /// <reference path="floorplanner/floorplanner.ts" />
 /// <reference path="three/main.ts" />
 
-module BP3D {
+namespace BP3D {
   /** Startup options. */
   export interface Options {
     /** */
@@ -28,17 +28,17 @@ module BP3D {
 
     private three: any; // Three.Main;
 
-    private floorplanner: Floorplanner.Floorplanner;
+    private floorplanner: Floorplanner.Floorplanner | undefined;
 
     /** Creates an instance.
      * @param options The initialization options.
      */
     constructor(options: Options) {
-      this.model = new Model.Model(options.textureDir);
+      this.model = new Model.Model(options.textureDir || "");
       this.three = new Three.Main(this.model, options.threeElement, options.threeCanvasElement, {});
 
       if (!options.widget) {
-        this.floorplanner = new Floorplanner.Floorplanner(options.floorplannerElement, this.model.floorplan);
+        this.floorplanner = new Floorplanner.Floorplanner(options.floorplannerElement || "", this.model.floorplan);
       }
       else {
         this.three.getController().enabled = false;

@@ -3,7 +3,7 @@
 // Definitions by: Kon <http://phyzkit.net/>, Satoru Kimura <https://github.com/gyohk>
 // Definitions: https://github.com/borisyankov/DefinitelyTyped
 
-declare module THREE {
+declare namespace THREE {
     export var REVISION: string;
 
     // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent.button
@@ -389,8 +389,8 @@ declare module THREE {
          */
         lookAt(vector: Vector3): void;
 
-        clone(): Camera;
-        copy(camera?: Camera): Camera;
+        clone(recursive?: boolean): Object3D;
+        copy(source: Object3D, recursive?: boolean): Camera;
     }
 
     export class CubeCamera extends Object3D {
@@ -4380,8 +4380,8 @@ declare module THREE {
         pose(): void;
         normalizeSkinWeights(): void;
         updateMatrixWorld(force?: boolean): void;
-        clone(): SkinnedMesh;
-        copy(source?: SkinnedMesh): SkinnedMesh;
+        clone(): Mesh;
+        copy(source?: Mesh): SkinnedMesh;
 
         skeleton: Skeleton;
     }
@@ -4394,7 +4394,7 @@ declare module THREE {
 
         raycast(raycaster: Raycaster, intersects: any): void;
         clone(): Sprite;
-        copy(source?: Sprite): Sprite;
+        copy(source?: Object3D, recursive?: boolean): Sprite;
     }
 
 
@@ -5265,12 +5265,6 @@ declare module THREE {
     }
 
     // Extras /////////////////////////////////////////////////////////////////////
-    export var CurveUtils: {
-        tangentQuadraticBezier(t: number, p0: number, p1: number, p2: number): number;
-        tangentCubicBezier(t: number, p0: number, p1: number, p2: number, p3: number): number;
-        tangentSpline(t: number, p0: number, p1: number, p2: number, p3: number): number;
-        interpolate(p0: number, p1: number, p2: number, p3: number, t: number): number;
-    }
 
     // deprecated.
     export var ImageUtils: {

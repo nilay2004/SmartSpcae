@@ -25,10 +25,10 @@ module BP3D.Model {
     private itemLoadingCallbacks = $.Callbacks();
 
     /** Item */
-    private itemLoadedCallbacks = $.Callbacks();
+    public itemLoadedCallbacks = $.Callbacks();
 
     /** Item */
-    private itemRemovedCallbacks = $.Callbacks();
+    public itemRemovedCallbacks = $.Callbacks();
 
     /**
      * Constructs a scene.
@@ -115,11 +115,11 @@ module BP3D.Model {
      * @param scale The initial scaling.
      * @param fixed True if fixed.
      */
-    public addItem(itemType: number, fileName: string, metadata, position: THREE.Vector3, rotation: number, scale: THREE.Vector3, fixed: boolean) {
+    public addItem(itemType: Items.ItemType, fileName: string, metadata: Items.Metadata, position: THREE.Vector3, rotation: number, scale: THREE.Vector3, fixed: boolean) {
       itemType = itemType || 1;
       var scope = this;
       var loaderCallback = function (geometry: THREE.Geometry, materials: THREE.Material[]) {
-        var item = new (Items.Factory.getClass(itemType))(
+        var item = new (Items.Factory.getClass(itemType) as any)(
           scope.model,
           metadata, geometry,
           new THREE.MeshFaceMaterial(materials),

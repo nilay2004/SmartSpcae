@@ -11,7 +11,7 @@ namespace BP3D.Items {
    */
   export abstract class WallItem extends Item {
     /** The currently applied wall edge. */
-    protected currentWallEdge: Model.HalfEdge = null;
+    protected currentWallEdge: Model.HalfEdge | null = null;
     /* TODO:
        This caused a huge headache.
        HalfEdges get destroyed/created every time floorplan is edited.
@@ -52,12 +52,12 @@ namespace BP3D.Items {
     /** Get the closet wall edge.
      * @returns The wall edge.
      */
-    public closestWallEdge(): Model.HalfEdge {
+    public closestWallEdge(): Model.HalfEdge | null {
 
       var wallEdges = this.model.floorplan.wallEdges();
 
-      var wallEdge = null;
-      var minDistance = null;
+      var wallEdge: Model.HalfEdge | null = null;
+      var minDistance: number | null = null;
 
       var itemX = this.position.x;
       var itemZ = this.position.z;
@@ -83,13 +83,13 @@ namespace BP3D.Items {
 
     /** */
     private redrawWall() {
-      if (this.addToWall) {
+      if (this.addToWall && this.currentWallEdge) {
         this.currentWallEdge.wall.fireRedraw();
       }
     }
 
     /** */
-    private updateEdgeVisibility(visible: boolean, front: boolean) {
+    public updateEdgeVisibility(visible: boolean, front: boolean) {
       if (front) {
         this.frontVisible = visible;
       } else {
@@ -118,6 +118,7 @@ namespace BP3D.Items {
     /** */
     public placeInRoom() {
       var closestWallEdge = this.closestWallEdge();
+      if (!closestWallEdge) { return; }
       this.changeWallEdge(closestWallEdge);
       this.updateSize();
 
@@ -135,8 +136,10 @@ namespace BP3D.Items {
     };
 
     /** */
-    public moveToPosition(vec3, intersection) {
-      this.changeWallEdge(intersection.object.edge);
+    public moveToPosition(vec3: THREE.Vector3, intersection: any) {
+      if (intersection && intersection.object && intersection.object.edge) {
+        this.changeWallEdge(intersection.object.edge as Model.HalfEdge);
+      }
       this.boundMove(vec3);
       this.position.copy(vec3);
       this.redrawWall();
@@ -148,7 +151,7 @@ namespace BP3D.Items {
     }
 
     /** */
-    private changeWallEdge(wallEdge) {
+    private changeWallEdge(wallEdge: Model.HalfEdge) {
       if (this.currentWallEdge != null) {
         if (this.addToWall) {
           Core.Utils.removeValue(this.currentWallEdge.wall.items, this);
@@ -166,7 +169,7 @@ namespace BP3D.Items {
 
       // find angle between wall normals
       var normal2 = new THREE.Vector2();
-      var normal3 = wallEdge.plane.geometry.faces[0].normal;
+      var normal3 = (wallEdge.plane as any)!.geometry.faces[0].normal;
       normal2.x = normal3.x;
       normal2.y = normal3.z;
 
@@ -187,14 +190,15 @@ namespace BP3D.Items {
 
     /** Returns an array of planes to use other than the ground plane
      * for passing intersection to clickPressed and clickDragged */
-    public customIntersectionPlanes() {
-      return this.model.floorplan.wallEdgePlanes();
+    public customIntersectionPlanes(): THREE.Object3D[] {
+      return this.model.floorplan.wallEdgePlanes() as THREE.Object3D[];
     }
 
     /** takes the move vec3, and makes sure object stays bounded on plane */
-    private boundMove(vec3) {
+    private boundMove(vec3: THREE.Vector3) {
       var tolerance = 1;
       var edge = this.currentWallEdge;
+      if (!edge) return;
       vec3.applyMatrix4(edge.interiorTransform);
 
       if (vec3.x < this.sizeX / 2.0 + tolerance) {

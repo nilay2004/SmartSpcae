@@ -229,6 +229,35 @@ var SideMenu = function(blueprint3d, floorplanControls, modalEffects) {
   // sidebar state
   var currentState = scope.states.FLOORPLAN;
 
+  function newPlan() {
+    blueprint3d.model.scene.clearItems();
+    blueprint3d.model.floorplan.reset();
+    setTimeout(function() {
+      blueprint3d.model.loadSerialized(window.CUSTOM_LAYOUT);
+    }, 100);
+  }
+
+  function loadDesign() {
+    files = $("#loadFile").get(0).files;
+    var reader  = new FileReader();
+    reader.onload = function(event) {
+        var data = event.target.result;
+        blueprint3d.model.loadSerialized(data);
+    }
+    reader.readAsText(files[0]);
+  }
+
+  function saveDesign() {
+    var data = blueprint3d.model.exportSerialized();
+    var a = window.document.createElement('a');
+    var blob = new Blob([data], {type : 'text'});
+    a.href = window.URL.createObjectURL(blob);
+    a.download = 'design.blueprint3d';
+    document.body.appendChild(a)
+    a.click();
+    document.body.removeChild(a)
+  }
+
   function init() {
     for (var tab in tabs) {
       var elem = tabs[tab];
@@ -236,6 +265,9 @@ var SideMenu = function(blueprint3d, floorplanControls, modalEffects) {
     }
 
     $("#update-floorplan").click(floorplanUpdate);
+    $("#new").click(newPlan);
+    $("#loadFile").change(loadDesign);
+    $("#saveFile").click(saveDesign);
 
     initLeftMenu();
 
@@ -244,7 +276,7 @@ var SideMenu = function(blueprint3d, floorplanControls, modalEffects) {
 
     initItems();
 
-    setCurrentState(scope.states.DEFAULT);
+    blueprint3d.model.loadSerialized(window.CUSTOM_LAYOUT);
   }
 
   function floorplanUpdate() {
@@ -309,6 +341,10 @@ var SideMenu = function(blueprint3d, floorplanControls, modalEffects) {
       floorplanControls.handleWindowResize();
     } 
 
+    if (newState == scope.states.SHOP) {
+      initItems();
+    }
+
     if (currentState == scope.states.FLOORPLAN) {
       blueprint3d.model.floorplan.update();
     }
@@ -345,7 +381,7 @@ var SideMenu = function(blueprint3d, floorplanControls, modalEffects) {
 
   // TODO: this doesn't really belong here
   function initItems() {
-    $("#add-items").find(".add-item").mousedown(function(e) {
+    $("#add-items").find(".add-item").unbind('mousedown').mousedown(function(e) {
       var modelUrl = $(this).attr("model-url");
       var itemType = parseInt($(this).attr("model-type"));
       var metadata = {
@@ -486,42 +522,7 @@ var ViewerFloorplanner = function(blueprint3d) {
   init();
 }; 
 
-var mainControls = function(blueprint3d) {
-  var blueprint3d = blueprint3d;
 
-  function newDesign() {
-    blueprint3d.model.loadSerialized('{"floorplan":{"corners":{"f90da5e3-9e0e-eba7-173d-eb0b071e838e":{"x":204.85099999999989,"y":289.052},"da026c08-d76a-a944-8e7b-096b752da9ed":{"x":672.2109999999999,"y":289.052},"4e3d65cb-54c0-0681-28bf-bddcc7bdb571":{"x":672.2109999999999,"y":-178.308},"71d4f128-ae80-3d58-9bd2-711c6ce6cdf2":{"x":204.85099999999989,"y":-178.308}},"walls":[{"corner1":"71d4f128-ae80-3d58-9bd2-711c6ce6cdf2","corner2":"f90da5e3-9e0e-eba7-173d-eb0b071e838e","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"f90da5e3-9e0e-eba7-173d-eb0b071e838e","corner2":"da026c08-d76a-a944-8e7b-096b752da9ed","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"da026c08-d76a-a944-8e7b-096b752da9ed","corner2":"4e3d65cb-54c0-0681-28bf-bddcc7bdb571","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"4e3d65cb-54c0-0681-28bf-bddcc7bdb571","corner2":"71d4f128-ae80-3d58-9bd2-711c6ce6cdf2","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}}],"wallTextures":[],"floorTextures":{},"newFloorTextures":{}},"items":[]}');
-  }
-
-  function loadDesign() {
-    files = $("#loadFile").get(0).files;
-    var reader  = new FileReader();
-    reader.onload = function(event) {
-        var data = event.target.result;
-        blueprint3d.model.loadSerialized(data);
-    }
-    reader.readAsText(files[0]);
-  }
-
-  function saveDesign() {
-    var data = blueprint3d.model.exportSerialized();
-    var a = window.document.createElement('a');
-    var blob = new Blob([data], {type : 'text'});
-    a.href = window.URL.createObjectURL(blob);
-    a.download = 'design.blueprint3d';
-    document.body.appendChild(a)
-    a.click();
-    document.body.removeChild(a)
-  }
-
-  function init() {
-    $("#new").click(newDesign);
-    $("#loadFile").change(loadDesign);
-    $("#saveFile").click(saveDesign);
-  }
-
-  init();
-}
 
 /*
  * Layout Slider
@@ -784,10 +785,16 @@ $(document).ready(function() {
   var sideMenu = new SideMenu(blueprint3d, viewerFloorplanner, modalEffects);
   var textureSelector = new TextureSelector(blueprint3d, sideMenu);        
   var cameraButtons = new CameraButtons(blueprint3d);
-  mainControls(blueprint3d);
-  
 
-  // This serialization format needs work
-  // Load a simple rectangle room
-  blueprint3d.model.loadSerialized('{"floorplan":{"corners":{"f90da5e3-9e0e-eba7-173d-eb0b071e838e":{"x":204.85099999999989,"y":289.052},"da026c08-d76a-a944-8e7b-096b752da9ed":{"x":672.2109999999999,"y":289.052},"4e3d65cb-54c0-0681-28bf-bddcc7bdb571":{"x":672.2109999999999,"y":-178.308},"71d4f128-ae80-3d58-9bd2-711c6ce6cdf2":{"x":204.85099999999989,"y":-178.308}},"walls":[{"corner1":"71d4f128-ae80-3d58-9bd2-711c6ce6cdf2","corner2":"f90da5e3-9e0e-eba7-173d-eb0b071e838e","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"f90da5e3-9e0e-eba7-173d-eb0b071e838e","corner2":"da026c08-d76a-a944-8e7b-096b752da9ed","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"da026c08-d76a-a944-8e7b-096b752da9ed","corner2":"4e3d65cb-54c0-0681-28bf-bddcc7bdb571","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"4e3d65cb-54c0-0681-28bf-bddcc7bdb571","corner2":"71d4f128-ae80-3d58-9bd2-711c6ce6cdf2","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}}],"wallTextures":[],"floorTextures":{},"newFloorTextures":{}},"items":[]}');
+  if (window.initBlueprintAR) {
+    window.initBlueprintAR(blueprint3d);
+  }
+
+  try {
+    var presetLayout = '{"floorplan":{"corners":{"c1":{"x":308.8640000000001,"y":0},"c2":{"x":1231.7119999999993,"y":0},"c3":{"x":1231.7119999999993,"y":724},"c4":{"x":308.8640000000001,"y":724},"dba26377-1998-4f5d-970a-f2827d60e390":{"x":1231.7119999999993,"y":161.17067700195304},"eb6606b7-59c3-4589-e332-96287a45e0bc":{"x":825.1519999999997,"y":161.17067700195304},"2292688f-2592-4f38-6e66-89d89bd666f8":{"x":825.1519999999997,"y":0},"1fb0c64c-08a2-77b2-777f-8c7263553194":{"x":825.1519999999997,"y":161.17067700195304},"b115c1c3-6cfb-9723-086f-d22c439443b0":{"x":825.1519999999997,"y":724}},"walls":[{"corner1":"c1","corner2":"2292688f-2592-4f38-6e66-89d89bd666f8","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"c2","corner2":"dba26377-1998-4f5d-970a-f2827d60e390","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"c3","corner2":"b115c1c3-6cfb-9723-086f-d22c439443b0","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"c4","corner2":"c1","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"dba26377-1998-4f5d-970a-f2827d60e390","corner2":"c3","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"dba26377-1998-4f5d-970a-f2827d60e390","corner2":"1fb0c64c-08a2-77b2-777f-8c7263553194","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"1fb0c64c-08a2-77b2-777f-8c7263553194","corner2":"2292688f-2592-4f38-6e66-89d89bd666f8","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"2292688f-2592-4f38-6e66-89d89bd666f8","corner2":"c2","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"1fb0c64c-08a2-77b2-777f-8c7263553194","corner2":"b115c1c3-6cfb-9723-086f-d22c439443b0","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}},{"corner1":"b115c1c3-6cfb-9723-086f-d22c439443b0","corner2":"c4","frontTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0},"backTexture":{"url":"rooms/textures/wallmap.png","stretch":true,"scale":0}}],"wallTextures":[],"floorTextures":{},"newFloorTextures":{}},"items":[{"item_name":"World Class Toilet Seat","item_type":1,"model_url":"models/js/toilet-seat.json","xpos":1205.794934474077,"ypos":36,"zpos":56.8006559327377,"rotation":-1.5707963267948966,"scale_x":1,"scale_y":1,"scale_z":1,"fixed":false},{"item_name":"Dresser - White","item_type":1,"model_url":"models/js/we-narrow6white_baked.js","xpos":1200.180072030805,"ypos":35.56,"zpos":454.49185921021154,"rotation":-1.5707963267948966,"scale_x":2.733333333333337,"scale_y":0.9985398840390354,"scale_z":0.9829797444252664,"fixed":false},{"item_name":"Open Door","item_type":7,"model_url":"models/js/open_door.js","xpos":911.299037382791,"ypos":110.800000297771,"zpos":161.67066955566406,"rotation":0,"scale_x":1,"scale_y":1,"scale_z":1,"fixed":false},{"item_name":"Open Door","item_type":7,"model_url":"models/js/open_door.js","xpos":824.6519775390625,"ypos":110.800000297771,"zpos":261.3297291348599,"rotation":-1.5707963267948966,"scale_x":1,"scale_y":1,"scale_z":1,"fixed":false},{"item_name":"Dresser - White","item_type":1,"model_url":"models/js/we-narrow6white_baked.js","xpos":1027.066201986063,"ypos":35.56,"zpos":685.711534802538,"rotation":3.141592653589793,"scale_x":1.866666666666668,"scale_y":0.9985398840390354,"scale_z":0.9829797444252664,"fixed":false},{"item_name":"Full Bed","item_type":1,"model_url":"models/js/ik_nordli_full.js","xpos":683.5751405552651,"ypos":49.53,"zpos":592.9368202227345,"rotation":-1.5707963267948966,"scale_x":1.288142857142857,"scale_y":0.9906,"scale_z":1.0033010033010032,"fixed":false},{"item_name":"Dining Table","item_type":1,"model_url":"models/js/cb-scholartable_baked.js","xpos":398.50064546714765,"ypos":38.078950895925004,"zpos":597.8339958356213,"rotation":0,"scale_x":1,"scale_y":1,"scale_z":1,"fixed":false},{"item_name":"Chair","item_type":1,"model_url":"models/js/gus-churchchair-whiteoak.js","xpos":399.13499833720766,"ypos":39.47743068655714,"zpos":666.1723386115017,"rotation":3.141592653589793,"scale_x":1,"scale_y":1,"scale_z":1,"fixed":false},{"item_name":"Chair","item_type":1,"model_url":"models/js/gus-churchchair-whiteoak.js","xpos":386.17890956535484,"ypos":39.47743068655714,"zpos":513.6034737211673,"rotation":0,"scale_x":1,"scale_y":1,"scale_z":1,"fixed":false},{"item_name":"Wardrobe - White","item_type":1,"model_url":"models/js/ik-kivine_baked.js","xpos":790.413489606724,"ypos":94.999999385175,"zpos":426.0458296139562,"rotation":-1.5707963267948966,"scale_x":1,"scale_y":1,"scale_z":1,"fixed":false},{"item_name":"Sectional - Olive","item_type":1,"model_url":"models/js/we-crosby2piece-greenbaked.json","xpos":590.1683201781508,"ypos":45.72,"zpos":311.1342757475881,"rotation":3.141592653589793,"scale_x":1.0628423615337796,"scale_y":1.0076133080433942,"scale_z":0.9948936625795949,"fixed":false},{"item_name":"Closed Door","item_type":7,"model_url":"models/js/closed-door28x80_baked.js","xpos":406.5222549799156,"ypos":110.80000022010701,"zpos":0.5,"rotation":0,"scale_x":1,"scale_y":1,"scale_z":1,"fixed":false},{"item_name":"Media Console - White","item_type":1,"model_url":"models/js/cb-clapboard_baked.js","xpos":633.6269631607563,"ypos":67.88999754395999,"zpos":34.37400867978181,"rotation":0,"scale_x":1,"scale_y":1,"scale_z":1,"fixed":false},{"item_name":"Ganesha Poster","item_type":2,"model_url":"models/js/ganesha-poster.json","xpos":508.9844266502455,"ypos":182.18482967976246,"zpos":6.253750317500636,"rotation":0,"scale_x":1,"scale_y":1,"scale_z":1,"fixed":false},{"item_name":"Bookshelf","item_type":1,"model_url":"models/js/cb-kendallbookcasewalnut_baked.js","xpos":769.6929618879914,"ypos":92.17650034119151,"zpos":27.90474363290329,"rotation":0,"scale_x":1,"scale_y":1,"scale_z":1,"fixed":false}]}';
+    blueprint3d.model.loadSerialized(presetLayout);
+    blueprint3d.three.centerCamera();
+  } catch (e) {
+    console.warn("Failed to load default preset:", e);
+  }
 });

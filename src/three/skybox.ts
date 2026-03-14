@@ -1,9 +1,9 @@
 /// <reference path="../../lib/three.d.ts" />
 
 module BP3D.Three {
-  export var Skybox = function (scene) {
+  export var Skybox = function (scene: THREE.Scene) {
 
-    var scope = this;
+    var scope: any = this;
 
     var scene = scene;
 

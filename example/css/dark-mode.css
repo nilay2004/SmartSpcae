@@ -1,0 +1,111 @@
+/* Dark Mode Styles */
+
+body.dark-mode {
+    background-color: #1a202c;
+    color: #cbd5e0;
+}
+
+.dark-mode .main-content {
+    background-color: #2d3748;
+}
+
+.dark-mode .top-bar {
+    background-color: #2d3748;
+    border-bottom-color: #4a5568;
+}
+
+.dark-mode .nav-tabs>li>a {
+    color: #cbd5e0;
+    background-color: #4a5568;
+    border-color: #4a5568;
+}
+
+.dark-mode .nav-tabs>li.active>a,
+.dark-mode .nav-tabs>li.active>a:hover,
+.dark-mode .nav-tabs>li.active>a:focus {
+    color: #e2e8f0;
+    background-color: #2d3748;
+    border-color: #4a5568;
+}
+
+.dark-mode .sidebar {
+    background-color: #2d3748;
+    border-right-color: #4a5568;
+}
+
+.dark-mode .panel-heading {
+    background-color: #2d3748;
+    border-bottom-color: #4a5568;
+}
+
+.dark-mode .panel-heading:hover {
+    background-color: #4a5568;
+}
+
+.dark-mode .panel-title a {
+    color: #e2e8f0;
+}
+
+.dark-mode .panel-body {
+    background-color: #2d3748;
+}
+
+.dark-mode .thumbnail {
+    background-color: #4a5568;
+    border-color: #718096;
+}
+
+.dark-mode .thumbnail:hover {
+    border-color: #a0aec0;
+}
+
+.dark-mode .top-bar {
+    background-color: #2d3748;
+    border-bottom-color: #4a5568;
+}
+
+/* Dark mode toggle switch */
+.dark-mode-toggle {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.dark-mode-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.dark-mode-toggle label {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.dark-mode-toggle label:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + label {
+    background-color: #4f46e5;
+}
+
+input:checked + label:before {
+    transform: translateX(26px);
+}

@@ -8,7 +8,7 @@
 /// <reference path="../model/wall.ts" />
 /// <reference path="floorplanner.ts" />
 
-module BP3D.Floorplanner {
+namespace BP3D.Floorplanner {
   /** */
   export const floorplannerModes = {
     MOVE: 0,
@@ -47,10 +47,10 @@ module BP3D.Floorplanner {
   export class FloorplannerView {
 
     /** The canvas element. */
-    private canvasElement!: HTMLCanvasElement;
+    private canvasElement: HTMLCanvasElement;
 
     /** The 2D context. */
-    private context!: CanvasRenderingContext2D;
+    private context: CanvasRenderingContext2D;
 
     /** */
     constructor(private floorplan: Model.Floorplan, private viewmodel: Floorplanner, private canvas: string) {
@@ -179,10 +179,10 @@ module BP3D.Floorplanner {
 
       var scope = this;
       this.drawPolygon(
-        Core.Utils.map(corners, (corner: Model.Corner) => {
+        Core.Utils.map(corners, (corner: { x: number, y: number }) => {
           return scope.viewmodel.convertX(corner.x);
         }),
-        Core.Utils.map(corners, (corner: Model.Corner) => {
+        Core.Utils.map(corners, (corner: { x: number, y: number }) => {
           return scope.viewmodel.convertY(corner.y);
         }),
         false,
@@ -204,7 +204,10 @@ module BP3D.Floorplanner {
           return scope.viewmodel.convertY(corner.y);
         }),
         true,
-        roomColor
+        roomColor,
+        false,
+        "",
+        0
       );
     }
 
@@ -226,7 +229,7 @@ module BP3D.Floorplanner {
     }
 
     /** */
-    private drawTarget(x: number, y: number, lastNode: Model.Corner | null) {
+    private drawTarget(x: number, y: number, lastNode: Model.Corner) {
       this.drawCircle(
         this.viewmodel.convertX(x),
         this.viewmodel.convertY(y),
@@ -262,10 +265,10 @@ module BP3D.Floorplanner {
       xArr: number[],
       yArr: number[],
       fill: boolean,
-      fillColor?: string | null,
-      stroke?: boolean,
-      strokeColor?: string,
-      strokeWidth?: number
+      fillColor: string | null,
+      stroke: boolean,
+      strokeColor: string,
+      strokeWidth: number
     ) {
       // fillColor is a hex string, i.e. #ff0000
       fill = fill || false;

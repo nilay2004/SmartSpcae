@@ -296,6 +296,19 @@ User Interaction → Floorplanner/3D Controller → Model (Floorplan/Scene) → 
 **Q20: Did you work in a team? What was your contribution?**
 *A: "[Specify your role and contributions - e.g., 'I worked on the 3D rendering module while teammates focused on the floor plan editor and item system']"*
 
+## Situational & Production Questions
+
+For in-depth situational questions regarding deployment crashes, scalability, and performance optimization, please refer to the dedicated guide:
+
+👉 **[Situational Interview Questions](file:///c:/Users/nilay%20pandya/Downloads/blueprint3d-master%20(2)/blueprint3d-master/SITUATIONAL_INTERVIEW_QUESTIONS.md)**
+
+### **Key Scenarios Covered:**
+1. **Deployment Crash Recovery**: Steps to take when a new version fails in production.
+2. **Scalability & High Traffic**: Handling thousands of concurrent users and large asset delivery.
+3. **Data Corruption**: Investigating and fixing broken floor plan saves.
+4. **Performance Optimization**: Solving FPS drops in complex 3D scenes.
+5. **Cross-Browser Failures**: Debugging device-specific rendering issues.
+
 ---
 
 ## Key Talking Points to Emphasize

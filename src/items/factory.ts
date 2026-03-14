@@ -6,7 +6,7 @@
 /// <reference path="wall_item.ts" />
 
 module BP3D.Items {
-  /** Enumeration of item types. */
+  export type ItemType = 1 | 2 | 3 | 7 | 8 | 9;
   const item_types = {
     1: Items.FloorItem,
     2: Items.WallItem,
@@ -19,7 +19,7 @@ module BP3D.Items {
   /** Factory class to create items. */
   export class Factory {
     /** Gets the class for the specified item. */
-    public static getClass(itemType) { 
+    public static getClass(itemType: ItemType) { 
       return item_types[itemType]
     }
   }

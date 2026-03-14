@@ -1,6 +1,6 @@
 /// <reference path="dimensioning.ts" />
 
-module BP3D.Core {
+namespace BP3D.Core {
   // GENERAL:
 
   /** The dimensioning unit for 2D floorplan measurements. */
@@ -33,7 +33,7 @@ module BP3D.Core {
     public static getStringValue(key: string): string {
       switch (key) {
         case configDimUnit:
-          return <string>this.data[key];
+          return this.data[key] as string;
         default:
           throw new Error("Invalid string configuration parameter: " + key);
       }
@@ -44,7 +44,7 @@ module BP3D.Core {
       switch (key) {
         case configWallHeight:
         case configWallThickness:
-          return <number>this.data[key];
+          return this.data[key] as number;
         default:
           throw new Error("Invalid numeric configuration parameter: " + key);
       }

@@ -235,7 +235,7 @@ module BP3D.Model {
      * @param corner A corner.
      * @return The associated wall or null.
      */
-    public wallTo(corner: Corner): Wall | null {
+    public wallTo(corner: Corner): Wall {
       for (var i = 0; i < this.wallStarts.length; i++) {
         if (this.wallStarts[i].getEnd() === corner) {
           return this.wallStarts[i];
@@ -248,7 +248,7 @@ module BP3D.Model {
      * @param corner A corner.
      * @return The associated wall or null.
      */
-    public wallFrom(corner: Corner): Wall | null {
+    public wallFrom(corner: Corner): Wall {
       for (var i = 0; i < this.wallEnds.length; i++) {
         if (this.wallEnds[i].getStart() === corner) {
           return this.wallEnds[i];
@@ -261,7 +261,7 @@ module BP3D.Model {
      * @param corner A corner.
      * @return The associated wall or null.
      */
-    public wallToOrFrom(corner: Corner): Wall | null {
+    public wallToOrFrom(corner: Corner): Wall {
       return this.wallTo(corner) || this.wallFrom(corner);
     }
 

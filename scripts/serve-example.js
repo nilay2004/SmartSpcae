@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..', 'example');
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 8002;
 
 function getContentType(file) {
   const ext = path.extname(file).toLowerCase();

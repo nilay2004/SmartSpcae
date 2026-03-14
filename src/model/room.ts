@@ -26,13 +26,13 @@ module BP3D.Model {
   export class Room {
 
     /** */
-    public interiorCorners: Corner[] = [];
+    public interiorCorners: { x: number, y: number }[] = [];
 
     /** */
-    private edgePointer: HalfEdge | null = null;
+    private edgePointer: HalfEdge = null;
 
     /** floor plane for intersection testing */
-    public floorPlane: THREE.Mesh | null = null;
+    public floorPlane: THREE.Mesh = null;
 
     /** */
     private customTexture = false;
@@ -57,11 +57,11 @@ module BP3D.Model {
       return cornerUuids.join();
     }
 
-    public fireOnFloorChange(callback: any) {
+    public fireOnFloorChange(callback: () => void) {
       this.floorChangeCallbacks.add(callback);
     }
 
-    private getTexture() {
+    public getTexture() {
       var uuid = this.getUuid();
       var tex = this.floorplan.getFloorTexture(uuid);
       return tex || defaultRoomTexture;
@@ -70,7 +70,7 @@ module BP3D.Model {
     /** 
      * textureStretch always true, just an argument for consistency with walls
      */
-    private setTexture(textureUrl: string, textureStretch: any, textureScale: number) {
+    public setTexture(textureUrl: string, textureStretch: boolean, textureScale: number) {
       var uuid = this.getUuid();
       this.floorplan.setFloorTexture(uuid, textureUrl, textureScale);
       this.floorChangeCallbacks.fire();
@@ -121,8 +121,8 @@ module BP3D.Model {
      */
     private updateWalls() {
 
-      var prevEdge: HalfEdge | null = null;
-      var firstEdge: HalfEdge | null = null;
+      var prevEdge: HalfEdge = null;
+      var firstEdge: HalfEdge = null;
 
       for (var i = 0; i < this.corners.length; i++) {
 

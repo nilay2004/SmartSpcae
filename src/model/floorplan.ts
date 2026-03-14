@@ -70,20 +70,24 @@ module BP3D.Model {
     public wallEdgePlanes(): THREE.Mesh[] {
       var planes: THREE.Mesh[] = []
       this.walls.forEach((wall) => {
-        if (wall.frontEdge) {
-          planes.push(wall.frontEdge.plane);
+        if (wall.frontEdge && wall.frontEdge.plane) {
+          planes.push(wall.frontEdge.plane as THREE.Mesh);
         }
-        if (wall.backEdge) {
-          planes.push(wall.backEdge.plane);
+        if (wall.backEdge && wall.backEdge.plane) {
+          planes.push(wall.backEdge.plane as THREE.Mesh);
         }
       });
       return planes;
     }
 
-    private floorPlanes(): THREE.Mesh[] {
-      return Core.Utils.map(this.rooms, (room: Room) => {
-        return room.floorPlane;
+    public floorPlanes(): THREE.Mesh[] {
+      var planes: THREE.Mesh[] = [];
+      this.rooms.forEach((room: Room) => {
+        if (room.floorPlane) {
+          planes.push(room.floorPlane);
+        }
       });
+      return planes;
     }
 
     public fireOnNewWall(callback: any) {
@@ -167,7 +171,7 @@ module BP3D.Model {
       return this.rooms;
     }
 
-    public overlappedCorner(x: number, y: number, tolerance?: number): Corner | null {
+    public overlappedCorner(x: number, y: number, tolerance?: number): Corner {
       tolerance = tolerance || defaultFloorPlanTolerance;
       for (var i = 0; i < this.corners.length; i++) {
         if (this.corners[i].distanceFrom(x, y) < tolerance) {
@@ -177,7 +181,7 @@ module BP3D.Model {
       return null;
     }
 
-    public overlappedWall(x: number, y: number, tolerance?: number): Wall | null {
+    public overlappedWall(x: number, y: number, tolerance?: number): Wall {
       tolerance = tolerance || defaultFloorPlanTolerance;
       for (var i = 0; i < this.walls.length; i++) {
         if (this.walls[i].distanceFrom(x, y) < tolerance) {
@@ -492,7 +496,7 @@ module BP3D.Model {
       //remove CW loops
       var uniqueCCWLoops = Core.Utils.removeIf(uniqueLoops, Core.Utils.isClockwise);
 
-      return uniqueCCWLoops;
+      return uniqueCCWLoops as any;
     }
   }
 }

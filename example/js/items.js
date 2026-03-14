@@ -2,7 +2,13 @@
 
 $(document).ready(function() {
   var items = [
-   {
+    {
+      "name" : "Ganesha Poster",
+      "image" : "models/thumbnails/ganesha-poster.jpg",
+      "model" : "models/js/ganesha-poster.json",
+      "type" : "2"
+    },
+    {
       "name" : "Closed Door",
       "image" : "models/thumbnails/thumbnail_Screen_Shot_2014-10-27_at_8.04.12_PM.png",
       "model" : "models/js/closed-door28x80_baked.js",
@@ -141,16 +147,22 @@ $(document).ready(function() {
       "type" : "1"
     },
     {
-      "name" : "Blue Rug",
-      "image" : "models/thumbnails/thumbnail_cb-blue-block60x96.png",
-      "model" : "models/js/cb-blue-block-60x96.js",
-      "type" : "8"
+      "name" : "World Class Toilet Seat",
+      "image" : "models/thumbnails/toilet-seat.jpg",
+      "model" : "models/js/toilet-seat.json",
+      "type" : "1"
     },
     {
       "name" : "NYC Poster",
       "image" : "models/thumbnails/thumbnail_nyc2.jpg",
       "model" : "models/js/nyc-poster2.js",
       "type" : "2"
+    },
+    {
+      "name" : "Blue Rug",
+      "image" : "models/thumbnails/thumbnail_cb-blue-block60x96.png",
+      "model" : "models/js/cb-blue-block-60x96.js",
+      "type" : "8"
     },
     {
       "name" : "Guest Chair",

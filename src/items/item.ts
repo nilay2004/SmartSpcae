@@ -27,7 +27,7 @@ module BP3D.Items {
     protected position_set = false;
 
     /** Show rotate option in context menu */
-    protected allowRotate = true;
+    public allowRotate = true;
 
     public fixed = false;
 
@@ -59,7 +59,7 @@ module BP3D.Items {
       this.scene = this.model.scene;
 
       this.errorColor = 0xff0000;
-      this.resizable = metadata.resizable;
+      this.resizable = !!metadata.resizable;
 
       this.castShadow = true;
       this.receiveShadow = false;
@@ -185,11 +185,11 @@ module BP3D.Items {
     }
 
     /** intersection has attributes point (vec3) and object (THREE.Mesh) */
-    public clickPressed(intersection: { point: THREE.Vector3; object: THREE.Object3D }): void {
+    public clickPressed(intersection: any): void {
       this.dragOffset.copy(intersection.point).sub(this.position);
     }
 
-    public clickDragged(intersection: { point: THREE.Vector3; object: THREE.Object3D } | null): void {
+    public clickDragged(intersection: any): void {
       if (intersection) {
         this.moveToPosition(
           intersection.point.clone().sub(this.dragOffset),
@@ -235,7 +235,7 @@ module BP3D.Items {
      * Returns an array of planes to use other than the ground plane
      * for passing intersection to clickPressed and clickDragged
      */
-    public customIntersectionPlanes(): THREE.Plane[] {
+    public customIntersectionPlanes(): THREE.Object3D[] {
       return [];
     }
 
@@ -246,11 +246,7 @@ module BP3D.Items {
      *
      * TODO: handle rotated objects better!
      */
-    public getCorners(
-      _xDim: number,
-      _yDim: number,
-      position?: THREE.Vector3
-    ): { x: number; y: number }[] {
+    public getCorners(position?: THREE.Vector3): { x: number; y: number }[] {
 
       const pos = position || this.position;
       const halfSize = this.halfSize.clone();
