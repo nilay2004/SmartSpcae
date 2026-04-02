@@ -82,6 +82,35 @@ var CameraButtons = function(blueprint3d) {
 }
 
 /*
+ * High-quality render export
+ */
+var RenderExport = function(blueprint3d) {
+  function downloadDataUrl(dataUrl, filename) {
+    var a = window.document.createElement('a');
+    a.href = dataUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  function init() {
+    $("#renderPng").click(function(e) {
+      e.preventDefault();
+      var scale = parseInt(window.prompt("Render scale (1, 2, 4)", "2"), 10);
+      if (!scale || scale < 1) scale = 1;
+      if (scale > 4) scale = 4;
+      var dataUrl = (blueprint3d.three.renderToDataUrl)
+        ? blueprint3d.three.renderToDataUrl(scale)
+        : blueprint3d.three.dataUrl();
+      downloadDataUrl(dataUrl, "render.png");
+    });
+  }
+
+  init();
+}
+
+/*
  * Context menu for selected item
  */ 
 
@@ -264,6 +293,16 @@ var SideMenu = function(blueprint3d, floorplanControls, modalEffects) {
       elem.click(tabClicked(elem));
     }
 
+    $("#mobile-menu-toggle").click(function() {
+      $(".sidebar").toggleClass("active");
+      $(".sidebar-overlay").toggleClass("active");
+    });
+
+    $(".sidebar-overlay").click(function() {
+      $(".sidebar").removeClass("active");
+      $(".sidebar-overlay").removeClass("active");
+    });
+
     $("#update-floorplan").click(floorplanUpdate);
     $("#new").click(newPlan);
     $("#loadFile").change(loadDesign);
@@ -285,6 +324,10 @@ var SideMenu = function(blueprint3d, floorplanControls, modalEffects) {
 
   function tabClicked(tab) {
     return function() {
+      // Close mobile menu
+      $(".sidebar").removeClass("active");
+      $(".sidebar-overlay").removeClass("active");
+
       // Stop three from spinning
       blueprint3d.three.stopSpin();
 
@@ -321,6 +364,9 @@ var SideMenu = function(blueprint3d, floorplanControls, modalEffects) {
     // show and hide the right divs
     currentState.div.hide()
     newState.div.show()
+
+    // Ensure resizing happens after visibility change
+    setTimeout(handleWindowResize, 0);
 
     // show layouts panel only when Design (3D) tab is active
     if (newState === scope.states.DEFAULT) {
@@ -374,9 +420,18 @@ var SideMenu = function(blueprint3d, floorplanControls, modalEffects) {
   this.setCurrentState = setCurrentState;
 
   function handleWindowResize() {
-    $(".sidebar").height(window.innerHeight);
-    $("#add-items").height(window.innerHeight);
+    var winHeight = window.innerHeight;
+    var topOffset = 56; // Top bar height (matches --topbar-height in CSS)
+    
+    $(".sidebar").height(winHeight - topOffset);
+    $("#add-items").height(winHeight - topOffset);
+    $("#viewer").height(winHeight - topOffset);
+    $("#floorplanner").height(winHeight - topOffset);
 
+    // Update threejs viewer if it's active
+    if (currentState === scope.states.DEFAULT && blueprint3d.three.updateWindowSize) {
+      blueprint3d.three.updateWindowSize();
+    }
   };
 
   // TODO: this doesn't really belong here
@@ -453,6 +508,269 @@ var TextureSelector = function (blueprint3d, sideMenu) {
 }
 
 /*
+ * Rooms panel (name + area list)
+ */
+var RoomsPanel = function (blueprint3d, viewerFloorplanner, sideMenu) {
+  var model = blueprint3d.model;
+  var floorplan = model.floorplan;
+  var floorplanner = viewerFloorplanner.floorplanner;
+  var ROOM_TYPES = [
+    "",
+    "Hall",
+    "Living",
+    "Kitchen",
+    "Bedroom",
+    "Bathroom",
+    "Dining",
+    "Balcony",
+    "Study",
+    "Store",
+    "Other"
+  ];
+
+  function init() {
+    // Update list whenever rooms change.
+    floorplan.fireOnUpdatedRooms(update);
+
+    $("#rooms-export-csv").on("click", function (e) {
+      e.preventDefault();
+      exportCsv();
+    });
+
+    // Sun/time-of-day slider (updates directional light).
+    $("#sun-time").on("input change", function() {
+      var v = parseFloat($(this).val());
+      updateSun(v);
+    });
+
+    $("#lighting-preset").on("change", function() {
+      var p = $(this).val();
+      var lights = blueprint3d.three.lights;
+      if (lights && lights.applyPreset) {
+        lights.applyPreset(p);
+      }
+      updateSun(parseFloat($("#sun-time").val() || "12"));
+      if (blueprint3d.three.needsUpdate) {
+        blueprint3d.three.needsUpdate();
+      }
+    });
+
+    // Show/hide panel based on current state.
+    sideMenu.stateChangeCallbacks.add(function (state) {
+      if (state === sideMenu.states.FLOORPLAN) {
+        $("#rooms-panel").show();
+        update();
+      } else {
+        $("#rooms-panel").hide();
+      }
+    });
+
+    // Initial visibility (we start in FLOORPLAN in this app).
+    $("#rooms-panel").show();
+    update();
+    // apply default preset
+    var lights = blueprint3d.three.lights;
+    if (lights && lights.applyPreset) {
+      lights.applyPreset($("#lighting-preset").val());
+    }
+    updateSun(parseFloat($("#sun-time").val() || "12"));
+  }
+
+  function formatHour(h) {
+    var hh = Math.floor(h);
+    var mm = Math.round((h - hh) * 60);
+    if (mm === 60) { hh += 1; mm = 0; }
+    return (hh < 10 ? "0" + hh : "" + hh) + ":" + (mm < 10 ? "0" + mm : "" + mm);
+  }
+
+  function updateSun(hour) {
+    $("#sun-time-label").text(formatHour(hour));
+    var lights = blueprint3d.three.lights;
+    var dir = lights && lights.getDirLight ? lights.getDirLight() : null;
+    if (!dir) return;
+    // Map 6..18 -> -80..80 degrees elevation and rotate around plan center.
+    var t = (hour - 6) / 12;
+    t = Math.max(0, Math.min(1, t));
+    var elev = (-80 + 160 * t) * Math.PI / 180;
+    var az = (45) * Math.PI / 180;
+    var center = floorplan.getCenter();
+    var r = 800;
+    var y = 300 + 250 * Math.sin(Math.max(0.05, Math.min(1.55, Math.abs(elev))));
+    var base = 0.2 + 1.2 * Math.max(0, Math.sin((t) * Math.PI));
+    var mult = (dir.userData && dir.userData.presetIntensity) ? dir.userData.presetIntensity : 1.0;
+    dir.intensity = base * mult;
+    dir.position.set(center.x + Math.cos(az) * r, y, center.z + Math.sin(az) * r);
+    dir.target.position.copy(center);
+    // Request a redraw.
+    if (blueprint3d.three.needsUpdate) {
+      blueprint3d.three.needsUpdate();
+    }
+  }
+
+  function focusRoom(room) {
+    if (!room || !room.getCentroid) return;
+    var c = room.getCentroid();
+    var centerX = floorplanner.canvasElement.innerWidth() / 2.0;
+    var centerY = floorplanner.canvasElement.innerHeight() / 2.0;
+    floorplanner.originX = c.x * floorplanner.pixelsPerCm - centerX;
+    floorplanner.originY = c.y * floorplanner.pixelsPerCm - centerY;
+    floorplanner.view.draw();
+  }
+
+  function renameRoom(room) {
+    var uuid = room.getUuid();
+    var meta = (floorplan.getRoomMeta && floorplan.getRoomMeta(uuid)) || {};
+    var currentName = meta.name || "";
+    var nextName = window.prompt("Room name", currentName);
+    if (nextName === null) return;
+    nextName = ("" + nextName).trim();
+    if (floorplan.setRoomMeta) {
+      floorplan.setRoomMeta(uuid, { name: nextName });
+    }
+    floorplanner.view.draw();
+    update();
+  }
+
+  function setRoomType(room, type) {
+    var uuid = room.getUuid();
+    if (floorplan.setRoomMeta) {
+      floorplan.setRoomMeta(uuid, { type: (type || "").trim() });
+    }
+    floorplanner.view.draw();
+    update();
+  }
+
+  function roomDisplayName(room) {
+    var uuid = room.getUuid();
+    var meta = (floorplan.getRoomMeta && floorplan.getRoomMeta(uuid)) || {};
+    var n = (meta.name || "").trim();
+    return n ? n : "Room";
+  }
+
+  function roomDisplayType(room) {
+    var uuid = room.getUuid();
+    var meta = (floorplan.getRoomMeta && floorplan.getRoomMeta(uuid)) || {};
+    return (meta.type || "").trim();
+  }
+
+  function update() {
+    var rooms = floorplan.getRooms() || [];
+    var list = $("#rooms-list");
+    list.empty();
+
+    // Sort by area (desc)
+    rooms = rooms.slice(0).sort(function (a, b) {
+      var aa = (a.getAreaCm2 ? a.getAreaCm2() : 0);
+      var bb = (b.getAreaCm2 ? b.getAreaCm2() : 0);
+      return bb - aa;
+    });
+
+    var totalFt2 = 0;
+    rooms.forEach(function (room) {
+      var cm2 = room.getAreaCm2 ? room.getAreaCm2() : 0;
+      var ft2 = cm2 / (30.48 * 30.48);
+      totalFt2 += ft2;
+
+      var name = roomDisplayName(room);
+      var type = roomDisplayType(room);
+      var area = (Math.round(ft2 * 100) / 100).toFixed(2) + " ft²";
+
+      var row = $('<div class="room-row" style="display:flex; align-items:center; justify-content:space-between; padding:6px 8px; border:1px solid #eee; border-radius:6px; margin-bottom:6px; cursor:pointer;"></div>');
+      var left = $('<div style="min-width:0;"></div>');
+      var title = type ? (name + " (" + type + ")") : name;
+      left.append('<div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + title + '</div>');
+      left.append('<div class="small text-muted">' + area + '</div>');
+      var actions = $('<div style="display:flex; gap:6px; align-items:center;"></div>');
+      var typeSelect = $('<select class="form-control input-sm" style="height:24px; padding:0 6px; font-size:11px; width:92px;"></select>');
+      ROOM_TYPES.forEach(function (t) {
+        var opt = $('<option></option>').attr("value", t).text(t ? t : "Type");
+        if (t === type) opt.attr("selected", "selected");
+        typeSelect.append(opt);
+      });
+      var renameBtn = $('<button class="btn btn-xs btn-default" type="button">Rename</button>');
+      actions.append(typeSelect);
+      actions.append(renameBtn);
+      row.append(left);
+      row.append(actions);
+
+      row.on("click", function () { focusRoom(room); });
+      typeSelect.on("click", function (e) { e.stopPropagation(); });
+      typeSelect.on("change", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        setRoomType(room, $(this).val());
+      });
+      renameBtn.on("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        renameRoom(room);
+      });
+
+      list.append(row);
+    });
+
+    $("#rooms-total").text("Total: " + (Math.round(totalFt2 * 100) / 100).toFixed(2) + " ft² • " + rooms.length + " room(s)");
+  }
+
+  function csvEscape(s) {
+    s = (s === null || s === undefined) ? "" : ("" + s);
+    if (/[",\n]/.test(s)) {
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+  }
+
+  function exportCsv() {
+    var rooms = floorplan.getRooms() || [];
+    // stable sort by name then area desc
+    rooms = rooms.slice(0).sort(function (a, b) {
+      var an = roomDisplayName(a).toLowerCase();
+      var bn = roomDisplayName(b).toLowerCase();
+      if (an < bn) return -1;
+      if (an > bn) return 1;
+      var aa = (a.getAreaCm2 ? a.getAreaCm2() : 0);
+      var bb = (b.getAreaCm2 ? b.getAreaCm2() : 0);
+      return bb - aa;
+    });
+
+    var lines = [];
+    lines.push(["Name", "Type", "Area (ft^2)", "Perimeter (ft)"].map(csvEscape).join(","));
+
+    var totalArea = 0;
+    var totalPerim = 0;
+    rooms.forEach(function (room) {
+      var name = roomDisplayName(room);
+      var type = roomDisplayType(room);
+      var cm2 = room.getAreaCm2 ? room.getAreaCm2() : 0;
+      var areaFt2 = cm2 / (30.48 * 30.48);
+      var perimCm = room.getPerimeterCm ? room.getPerimeterCm() : 0;
+      var perimFt = perimCm / 30.48;
+      totalArea += areaFt2;
+      totalPerim += perimFt;
+      lines.push([
+        name,
+        type,
+        (Math.round(areaFt2 * 100) / 100).toFixed(2),
+        (Math.round(perimFt * 100) / 100).toFixed(2)
+      ].map(csvEscape).join(","));
+    });
+
+    lines.push(["TOTAL", "", (Math.round(totalArea * 100) / 100).toFixed(2), (Math.round(totalPerim * 100) / 100).toFixed(2)].map(csvEscape).join(","));
+
+    var csv = lines.join("\n");
+    var blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    var a = window.document.createElement("a");
+    a.href = window.URL.createObjectURL(blob);
+    a.download = "rooms-schedule.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  init();
+};
+
+/*
  * Floorplanner controls
  */
 
@@ -464,6 +782,8 @@ var ViewerFloorplanner = function(blueprint3d) {
   var move = '#move';
   var remove = '#delete';
   var draw = '#draw';
+  var door = '#place-door';
+  var windowBtn = '#place-window';
 
   var activeStlye = 'btn-primary disabled';
 
@@ -481,12 +801,18 @@ var ViewerFloorplanner = function(blueprint3d) {
       $(draw).removeClass(activeStlye);
       $(remove).removeClass(activeStlye);
       $(move).removeClass(activeStlye);
+      $(door).removeClass(activeStlye);
+      $(windowBtn).removeClass(activeStlye);
       if (mode == BP3D.Floorplanner.floorplannerModes.MOVE) {
           $(move).addClass(activeStlye);
       } else if (mode == BP3D.Floorplanner.floorplannerModes.DRAW) {
           $(draw).addClass(activeStlye);
       } else if (mode == BP3D.Floorplanner.floorplannerModes.DELETE) {
           $(remove).addClass(activeStlye);
+      } else if (mode == BP3D.Floorplanner.floorplannerModes.DOOR) {
+          $(door).addClass(activeStlye);
+      } else if (mode == BP3D.Floorplanner.floorplannerModes.WINDOW) {
+          $(windowBtn).addClass(activeStlye);
       }
 
       if (mode == BP3D.Floorplanner.floorplannerModes.DRAW) {
@@ -508,6 +834,14 @@ var ViewerFloorplanner = function(blueprint3d) {
     $(remove).click(function(){
       scope.floorplanner.setMode(BP3D.Floorplanner.floorplannerModes.DELETE);
     });
+
+    $(door).click(function(){
+      scope.floorplanner.setMode(BP3D.Floorplanner.floorplannerModes.DOOR);
+    });
+
+    $(windowBtn).click(function(){
+      scope.floorplanner.setMode(BP3D.Floorplanner.floorplannerModes.WINDOW);
+    });
   }
 
   this.updateFloorplanView = function() {
@@ -515,7 +849,10 @@ var ViewerFloorplanner = function(blueprint3d) {
   }
 
   this.handleWindowResize = function() {
-    $(canvasWrapper).height(window.innerHeight - $(canvasWrapper).offset().top);
+    var topOffset = $(canvasWrapper).offset().top;
+    // On some mobile browsers, offset().top can be inaccurate during transitions
+    if (topOffset < 56 && window.innerWidth < 768) topOffset = 56; 
+    $(canvasWrapper).height(window.innerHeight - topOffset);
     scope.floorplanner.resizeView();
   };
 
@@ -778,6 +1115,7 @@ $(document).ready(function() {
     widget: false
   }
   var blueprint3d = new BP3D.Blueprint3d(opts);
+  window.bp3d = blueprint3d; // Expose for walkthrough.js
 
   var modalEffects = new ModalEffects(blueprint3d);
   var viewerFloorplanner = new ViewerFloorplanner(blueprint3d);
@@ -785,9 +1123,14 @@ $(document).ready(function() {
   var sideMenu = new SideMenu(blueprint3d, viewerFloorplanner, modalEffects);
   var textureSelector = new TextureSelector(blueprint3d, sideMenu);        
   var cameraButtons = new CameraButtons(blueprint3d);
+  var roomsPanel = new RoomsPanel(blueprint3d, viewerFloorplanner, sideMenu);
 
-  if (window.initBlueprintAR) {
-    window.initBlueprintAR(blueprint3d);
+  if (window.initBlueprintVR) {
+    window.initBlueprintVR(blueprint3d);
+  }
+
+  if (window.initAIPlanner) {
+    window.initAIPlanner(blueprint3d);
   }
 
   try {

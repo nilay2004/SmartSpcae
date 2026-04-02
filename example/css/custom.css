@@ -1,115 +1,337 @@
-/* Custom CSS for Blueprint3D Modernization */
+/* Blueprint3D - Component Enhancements
+ * Polished micro-interactions, refined components, and visual hierarchy
+ */
 
+/* === Google Font Import === */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* === Global Refinements === */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background-color: #f1f5f9;
-    color: #334155;
-    overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-.main-container {
-    display: flex;
-    height: 100vh;
-}
-
+/* === Sidebar Enhancements === */
 .sidebar {
-    width: 320px;
-    background-color: #ffffff;
-    border-right: 1px solid #e2e8f0;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    display: flex;
-    flex-direction: column;
-    transition: width 0.3s ease;
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 transparent;
 }
 
-.main-content {
-    flex-grow: 1;
-    position: relative;
+/* === Navigation Items === */
+.nav-sidebar > li > a {
+  position: relative;
+  user-select: none;
 }
 
-.top-bar {
-    height: 60px;
-    background-color: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+.nav-sidebar > li > a::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: var(--color-primary, #6366f1);
+  border-radius: 2px;
+  transition: height 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.panel-group {
-    border-radius: 0;
+.nav-sidebar > .active > a::after {
+  height: 20px;
+}
+
+/* === Panel Polish === */
+.panel {
+  transition: box-shadow 200ms ease;
+}
+
+.panel:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .panel-heading {
-    background-color: transparent;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 15px 20px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+  user-select: none;
+  position: relative;
 }
 
-.panel-heading:hover {
-    background-color: #f8fafc;
+/* === Button Enhancements === */
+.btn {
+  user-select: none;
+  position: relative;
+  overflow: hidden;
 }
 
-.panel-title a {
-    color: #334155;
-    font-weight: 600;
-    text-decoration: none;
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  border-radius: inherit;
 }
 
-.panel-body {
-    padding: 20px;
-    background-color: #f8fafc;
+.btn:hover::after {
+  opacity: 0.06;
 }
 
-.thumbnail {
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    background-color: #ffffff;
-    padding: 10px;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    cursor: pointer;
+.btn:active::after {
+  opacity: 0.12;
 }
 
-.thumbnail:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    border-color: #4f46e5;
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary, #6366f1);
+  outline-offset: 2px;
 }
 
-.thumbnail img {
-    border-radius: 8px;
-}
-
+/* === Ripple effect on primary buttons === */
 .btn-primary {
-    background-color: #4f46e5;
-    border-color: #4f46e5;
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-weight: 600;
-    transition: background-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.btn-primary:hover {
-    background-color: #4338ca;
-    border-color: #4338ca;
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 400ms ease, height 400ms ease;
 }
 
+.btn-primary:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* === Add Item Card Enhancements === */
+.add-item {
+  user-select: none;
+}
+
+.add-item .item-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--color-primary-light, #eef2ff);
+  color: var(--color-primary, #6366f1);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: all 200ms ease;
+}
+
+.add-item:hover .item-badge {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* === Form Control Enhancements === */
+.form-control {
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.form-control:hover {
+  border-color: #cbd5e1;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #475569;
+  font-size: 12px;
+}
+
+/* === Layout Slider Enhancements === */
+.layout-slide {
+  position: relative;
+}
+
+.layout-slide::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: border-color 200ms ease;
+  pointer-events: none;
+}
+
+.layout-slide.active::before {
+  border-color: var(--color-primary, #6366f1);
+}
+
+/* === Room Row Enhancements === */
+.room-row {
+  position: relative;
+}
+
+.room-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: var(--color-primary, #6366f1);
+  border-radius: 2px;
+  transition: height 200ms ease;
+}
+
+.room-row:hover::before {
+  height: 60%;
+}
+
+/* === Tooltip-like hints === */
+.hint-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(15, 23, 42, 0.06);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+/* === Skeleton loading animation === */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+/* === Smooth fade-in for dynamically loaded content === */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 300ms ease forwards;
+}
+
+/* === Focus ring utility === */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+/* === Glass morphism utility === */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* === Floating badge for notifications === */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* === Checkbox and toggle enhancement === */
+label[for] {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* === Scrollbar for rooms list === */
+#rooms-list {
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 transparent;
+}
+
+#rooms-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+#rooms-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#rooms-list::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+/* === Texture grid enhancement === */
+.texture-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+}
+
+/* === Top bar right section === */
 .top-bar-right {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    height: 100%;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: 12px;
 }
 
-.dark-mode-toggle {
-    margin-left: 20px;
-    margin-top: 10px;
+/* === Camera control hover tooltips === */
+#camera-controls .btn {
+  position: relative;
 }
 
-/* Animation for panel collapse */
-.panel-collapse.collapsing {
-    transition: height 0.3s ease;
+#camera-controls .btn[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 500;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Selection highlight === */
+::selection {
+  background: rgba(99, 102, 241, 0.2);
+  color: inherit;
+}
+
+/* === Print styles === */
+@media print {
+  .sidebar, #main-controls, #camera-controls, #floorplanner-controls, .dark-mode-toggle {
+    display: none !important;
+  }
+  .main {
+    width: 100% !important;
+  }
 }

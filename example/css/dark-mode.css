@@ -1,111 +1,390 @@
-/* Dark Mode Styles */
+/* Blueprint3D - Dark Mode Theme
+ * Complete dark theme with smooth transitions
+ */
 
+/* === Dark Mode Variables === */
 body.dark-mode {
-    background-color: #1a202c;
-    color: #cbd5e0;
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-border: #334155;
+  --color-border-light: #1e293b;
+  --color-text: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  --color-primary: #818cf8;
+  --color-primary-hover: #6366f1;
+  --color-primary-light: rgba(99, 102, 241, 0.15);
+
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
-.dark-mode .main-content {
-    background-color: #2d3748;
+/* === Smooth transition on mode switch === */
+body,
+.sidebar,
+.panel,
+.panel-heading,
+.panel-body,
+.btn,
+.form-control,
+.thumbnail,
+.nav-sidebar > li > a,
+.room-row,
+.add-item {
+  transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
 }
 
-.dark-mode .top-bar {
-    background-color: #2d3748;
-    border-bottom-color: #4a5568;
-}
-
-.dark-mode .nav-tabs>li>a {
-    color: #cbd5e0;
-    background-color: #4a5568;
-    border-color: #4a5568;
-}
-
-.dark-mode .nav-tabs>li.active>a,
-.dark-mode .nav-tabs>li.active>a:hover,
-.dark-mode .nav-tabs>li.active>a:focus {
-    color: #e2e8f0;
-    background-color: #2d3748;
-    border-color: #4a5568;
-}
-
+/* === Sidebar === */
 .dark-mode .sidebar {
-    background-color: #2d3748;
-    border-right-color: #4a5568;
+  background-color: #1e293b;
+  border-right-color: #334155;
+}
+
+.dark-mode .sidebar::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+/* === Navigation === */
+.dark-mode .nav-sidebar > li > a {
+  color: #94a3b8;
+}
+
+.dark-mode .nav-sidebar > li > a:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f1f5f9;
+}
+
+.dark-mode .nav-sidebar > .active > a {
+  background: rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+}
+
+/* === Top Bar === */
+.dark-mode .top-bar {
+  background-color: #1e293b;
+  border-bottom-color: #334155;
+}
+
+.dark-mode .top-bar-brand {
+  color: #f1f5f9;
+}
+
+/* === Panels === */
+.dark-mode .panel {
+  background: #1e293b;
+  border-color: #334155;
 }
 
 .dark-mode .panel-heading {
-    background-color: #2d3748;
-    border-bottom-color: #4a5568;
-}
-
-.dark-mode .panel-heading:hover {
-    background-color: #4a5568;
-}
-
-.dark-mode .panel-title a {
-    color: #e2e8f0;
+  background-color: #1e293b;
+  border-bottom-color: #334155;
+  color: #f1f5f9;
 }
 
 .dark-mode .panel-body {
-    background-color: #2d3748;
+  background-color: #1e293b;
+  color: #94a3b8;
 }
 
+/* === Buttons === */
+.dark-mode .btn-default {
+  background: #334155;
+  border-color: #475569;
+  color: #cbd5e1;
+}
+
+.dark-mode .btn-default:hover {
+  background: #475569;
+  border-color: #64748b;
+  color: #f1f5f9;
+}
+
+.dark-mode .btn-primary {
+  background: #6366f1;
+  border-color: #6366f1;
+}
+
+.dark-mode .btn-primary:hover {
+  background: #4f46e5;
+  border-color: #4f46e5;
+}
+
+/* === Form Controls === */
+.dark-mode .form-control {
+  background-color: #0f172a;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+.dark-mode .form-control:focus {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  background-color: #0f172a;
+}
+
+.dark-mode .form-control::placeholder {
+  color: #64748b;
+}
+
+.dark-mode select.form-control {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+}
+
+/* === Thumbnails === */
 .dark-mode .thumbnail {
-    background-color: #4a5568;
-    border-color: #718096;
+  background-color: #0f172a;
+  border-color: #334155;
 }
 
 .dark-mode .thumbnail:hover {
-    border-color: #a0aec0;
+  border-color: #818cf8;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
-.dark-mode .top-bar {
-    background-color: #2d3748;
-    border-bottom-color: #4a5568;
+/* === Add Items === */
+.dark-mode .add-item {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
 }
 
-/* Dark mode toggle switch */
+.dark-mode .add-item:hover {
+  border-color: #818cf8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .add-item .item-name {
+  color: #f1f5f9;
+}
+
+.dark-mode #add-items {
+  background: #0f172a;
+}
+
+/* === Layout Slider === */
+.dark-mode .layout-slider-wrapper {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.dark-mode .layout-preview {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.dark-mode .layout-slide-title {
+  color: #f1f5f9;
+}
+
+.dark-mode .layout-slide-subtitle {
+  color: #94a3b8;
+}
+
+.dark-mode .layout-slide:hover,
+.dark-mode .layout-slide.active {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.dark-mode .layout-slider-dot {
+  background: #475569;
+}
+
+.dark-mode .layout-slider-dot.active {
+  background: #818cf8;
+}
+
+.dark-mode .layout-title {
+  color: #f1f5f9;
+}
+
+.dark-mode .layout-description {
+  color: #94a3b8;
+}
+
+/* === Room Rows === */
+.dark-mode .room-row {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.dark-mode .room-row:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: #818cf8;
+}
+
+/* === Texture Section === */
+.dark-mode #floorTexturesDiv,
+.dark-mode #wallTextures {
+  color: #94a3b8;
+}
+
+/* === Floorplanner === */
+.dark-mode #floorplanner {
+  background: #0f172a;
+}
+
+.dark-mode #floorplanner-controls {
+  background: rgba(30, 41, 59, 0.92);
+  border-bottom-color: #334155;
+}
+
+.dark-mode #draw-walls-hint {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+/* === Range Slider === */
+.dark-mode input[type="range"] {
+  background: #475569;
+}
+
+.dark-mode input[type="range"]::-webkit-slider-thumb {
+  background: #818cf8;
+}
+
+.dark-mode input[type="range"]::-moz-range-thumb {
+  background: #818cf8;
+}
+
+/* === Loading Modal === */
+.dark-mode #loading-modal {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+/* === Context Menu === */
+.dark-mode #context-menu-name {
+  color: #f1f5f9;
+}
+
+.dark-mode .lead {
+  color: #cbd5e1;
+}
+
+/* === Text helpers === */
+.dark-mode .text-muted {
+  color: #64748b !important;
+}
+
+/* === Labels === */
+.dark-mode label {
+  color: #cbd5e1;
+}
+
+.dark-mode .control-label {
+  color: #94a3b8;
+}
+
+/* === Sidebar divider === */
+.dark-mode .sidebar-divider {
+  background: #334155;
+}
+
+.dark-mode .sidebar-section-title {
+  color: #64748b;
+}
+
+/* === Dark mode toggle label === */
+.dark-mode .dark-mode-toggle label {
+  background: #818cf8;
+}
+
+.dark-mode .dark-mode-toggle label::before {
+  background: #f1f5f9;
+}
+
+/* === Camera controls === */
+.dark-mode #camera-controls .btn {
+  color: #94a3b8;
+}
+
+.dark-mode #camera-controls .btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+}
+
+/* === Sidebar overlay === */
+.dark-mode .sidebar-overlay {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* === Scrollbar dark mode === */
+.dark-mode #rooms-list::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+/* === Skeleton dark mode === */
+.dark-mode .skeleton {
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+  background-size: 200% 100%;
+}
+
+/* === Glass dark mode === */
+.dark-mode .glass {
+  background: rgba(30, 41, 59, 0.85);
+}
+
+/* === Selection dark mode === */
+.dark-mode ::selection {
+  background: rgba(129, 140, 248, 0.3);
+}
+
+/* === Dark mode toggle switch (always visible) === */
 .dark-mode-toggle {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 34px;
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
 }
 
 .dark-mode-toggle input {
-    opacity: 0;
-    width: 0;
-    height: 0;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
 .dark-mode-toggle label {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 34px;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: background-color 250ms ease;
+  border-radius: 26px;
 }
 
-.dark-mode-toggle label:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
+.dark-mode-toggle label::before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #fff;
+  transition: transform 250ms ease;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-input:checked + label {
-    background-color: #4f46e5;
+input:checked + .dark-mode-toggle label,
+.dark-mode-toggle input:checked + label {
+  background-color: #818cf8;
 }
 
-input:checked + label:before {
-    transform: translateX(26px);
+.dark-mode-toggle input:checked + label::before {
+  transform: translateX(22px);
+}
+
+/* === Transitions for dark mode toggle === */
+body.dark-mode * {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow;
+  transition-duration: 250ms;
+  transition-timing-function: ease;
+}
+
+/* Skip transitions on canvas elements and Three.js */
+body.dark-mode canvas,
+body.dark-mode #viewer canvas,
+body.dark-mode #three-canvas {
+  transition: none;
 }
