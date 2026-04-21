@@ -6,6 +6,7 @@
 /// <reference path="skybox.ts" />
 /// <reference path="controls.ts" />
 /// <reference path="hud.ts" />
+/// <reference path="smart_measurement_overlay.ts" />
 
 module BP3D.Three {
   export class Main {
@@ -31,7 +32,7 @@ module BP3D.Three {
     private controller: Three.Controller = null;
     private floorplan: Three.Floorplan = null;
     private hud: Three.HUD = null;
-    private lights: any = null;
+    public lights: any = null;
     private skybox: any = null;
     private needsUpdate = false;
     private lastRender = Date.now();
@@ -67,14 +68,49 @@ module BP3D.Three {
       THREE.ImageUtils.crossOrigin = "";
 
       this.domElement = this.element.get(0); // Container
-      this.camera = new THREE.PerspectiveCamera(45, 1, 1, 10000);
+
+      // ── Camera ────────────────────────────────────────────────────────────
+      this.camera = new THREE.PerspectiveCamera(45, 1, 1, 20000);
+
+      // ── Renderer with improved quality settings ───────────────────────────
       this.renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        preserveDrawingBuffer: true // required to support .toDataURL()
+        antialias: true,                  // smooth edges
+        preserveDrawingBuffer: true,      // required for .toDataURL()
+        alpha: false,
+        precision: "highp"               // use high precision shaders
       });
+
+      // Pixel ratio — use device pixel ratio for sharp rendering on retina screens
+      // capped at 2 to avoid performance issues on high-dpi displays
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
       this.renderer.autoClear = false;
+
+      // ── Shadow quality improvements ───────────────────────────────────────
       this.renderer.shadowMapEnabled = true;
-      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // soft, realistic shadows
+
+      // ── Gamma correction for accurate colors ──────────────────────────────
+      // This makes colors look more realistic (not washed out)
+      this.renderer.gammaInput = true;
+      this.renderer.gammaOutput = true;
+      this.renderer.gammaFactor = 2.2;   // standard gamma value
+
+      // ── Tone mapping for better contrast and realism ──────────────────────
+      // ACESFilmic gives cinematic look — if not available in this Three.js
+      // version it will just be ignored gracefully
+      try {
+        if ((THREE as any).ACESFilmicToneMapping !== undefined) {
+          (this.renderer as any).toneMapping = (THREE as any).ACESFilmicToneMapping;
+          (this.renderer as any).toneMappingExposure = 1.1;
+        } else if ((THREE as any).ReinhardToneMapping !== undefined) {
+          // Fallback: Reinhard tone mapping (available in older Three.js)
+          (this.renderer as any).toneMapping = (THREE as any).ReinhardToneMapping;
+          (this.renderer as any).toneMappingExposure = 1.0;
+        }
+      } catch (e) {
+        // tone mapping not supported in this version, skip silently
+      }
 
       this.skybox = new (Three.Skybox as any)(this.scene);
 
@@ -87,6 +123,10 @@ module BP3D.Three {
 
       this.domElement.appendChild(this.renderer.domElement);
 
+      // ── Renderer canvas style improvements ────────────────────────────────
+      // Ensure crisp rendering on all devices
+      this.renderer.domElement.style.imageRendering = "auto";
+
       // handle window resizing
       this.updateWindowSize();
       if (this.options.resize) {
@@ -95,12 +135,18 @@ module BP3D.Three {
 
       // setup camera nicely
       this.centerCamera();
-      this.model.floorplan.fireOnUpdatedRooms(() => this.centerCamera());
+      this.model.activeFloor.floorplan.fireOnUpdatedRooms(() => this.centerCamera());
 
-      this.lights = new (Three.Lights as any)(this.scene, this.model.floorplan);
+      this.lights = new (Three.Lights as any)(this.scene, this.model.activeFloor.floorplan);
 
       this.floorplan = new Three.Floorplan(this.scene.getScene(),
-        this.model.floorplan, this.controls);
+        this.model, this.controls);
+
+      // Listen to active floor changes
+      this.model.activeFloorChangedCallbacks.add(() => {
+        (this.lights as any).updateFloorplan(this.model.activeFloor.floorplan);
+        this.floorplan.redraw();
+      });
 
       this.animate();
 
@@ -123,6 +169,34 @@ module BP3D.Three {
 
     public dataUrl() {
       var dataUrl = this.renderer.domElement.toDataURL("image/png");
+      return dataUrl;
+    }
+
+    // ── High quality render export ─────────────────────────────────────────
+    // scale: 1 = normal, 2 = 2x resolution, 4 = 4x resolution
+    public renderToDataUrl(scale?: number): string {
+      scale = scale || 2;
+      scale = Math.max(1, Math.min(4, scale));
+
+      var origWidth  = this.elementWidth;
+      var origHeight = this.elementHeight;
+
+      // Render at higher resolution
+      this.renderer.setSize(origWidth * scale, origHeight * scale);
+      this.renderer.setPixelRatio(1);
+
+      this.renderer.clear();
+      this.renderer.render(this.scene.getScene(), this.camera);
+      this.renderer.clearDepth();
+      this.renderer.render(this.hud.getScene(), this.camera);
+
+      var dataUrl = this.renderer.domElement.toDataURL("image/png");
+
+      // Restore original size
+      this.renderer.setSize(origWidth, origHeight);
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      this.needsUpdate = true;
+
       return dataUrl;
     }
 
@@ -158,8 +232,12 @@ module BP3D.Three {
       this.needsUpdate = true;
     }
 
+    // Expose needsUpdate as callable function for external use
+    public needsUpdate_fn() {
+      this.needsUpdate = true;
+    }
+
     private shouldRender() {
-      // Do we need to draw a new frame
       if (this.controls.needsUpdate || this.controller.needsUpdate || this.needsUpdate || this.model.scene.needsUpdate) {
         this.controls.needsUpdate = false;
         this.controller.needsUpdate = false;
@@ -217,29 +295,31 @@ module BP3D.Three {
       this.camera.updateProjectionMatrix();
 
       this.renderer.setSize(this.elementWidth, this.elementHeight);
+
+      // Re-apply pixel ratio on resize
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
       this.needsUpdate = true;
     }
 
     public centerCamera() {
       var yOffset = 150.0;
 
-      var pan = this.model.floorplan.getCenter();
+      var pan = this.model.activeFloor.floorplan.getCenter();
       pan.y = yOffset;
 
       this.controls.target = pan;
 
-      var distance = this.model.floorplan.getSize().z * 1.5;
+      var distance = this.model.activeFloor.floorplan.getSize().z * 1.5;
 
       var offset = pan.clone().add(
         new THREE.Vector3(0, distance, distance));
-      //scope.controls.setOffset(offset);
       this.camera.position.copy(offset);
 
       this.controls.update();
     }
 
     // projects the object's center point into x,y screen coords
-    // x,y are relative to top left corner of viewer
     public projectVector(vec3: THREE.Vector3, ignoreMargin?: boolean) {
       ignoreMargin = ignoreMargin || false;
 

@@ -1,6 +1,7 @@
 /// <reference path="../../lib/three.d.ts" />
 /// <reference path="../core/utils.ts" />
 /// <reference path="../items/item.ts" />
+/// <reference path="smart_measurement_overlay.ts" />
 
 module BP3D.Three {
   /**
@@ -17,11 +18,14 @@ module BP3D.Three {
     private color = "#ffffff";
     private hoverColor = "#f1c40f";
     private activeObject: THREE.Object3D = null;
+    private smartMeasurementOverlay: SmartMeasurementOverlay;
     private three: any;
 
     constructor(three: any) {
       this.three = three;
       this.scene = new THREE.Scene();
+      // Pass OUR scene so the overlay adds objects directly into it.
+      this.smartMeasurementOverlay = new SmartMeasurementOverlay(three, this.scene);
       this.init();
     }
 
@@ -54,11 +58,17 @@ module BP3D.Three {
           this.activeObject = this.makeObject(this.selectedItem);
           this.scene.add(this.activeObject);
         }
+        // Show measurements immediately on selection
+        this.smartMeasurementOverlay.update(item);
+        this.three.needsUpdate();
       }
     }
 
     private itemUnselected() {
       this.resetSelectedItem();
+      // Clear measurements when item is deselected
+      this.smartMeasurementOverlay.update(null);
+      this.three.needsUpdate();
     }
 
     public setRotating(isRotating: boolean) {
@@ -90,6 +100,9 @@ module BP3D.Three {
         this.activeObject.position.x = this.selectedItem.position.x;
         this.activeObject.position.z = this.selectedItem.position.z;
       }
+      this.smartMeasurementOverlay.update(this.selectedItem);
+      // Ensure the renderer picks up new overlay objects
+      this.three.needsUpdate();
     }
 
     private makeLineGeometry(item: Items.Item) {
