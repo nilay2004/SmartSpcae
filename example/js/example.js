@@ -1496,6 +1496,11 @@ $(document).ready(function() {
   var roomsPanel = new RoomsPanel(blueprint3d, viewerFloorplanner, sideMenu);
   var floorsPanel = new FloorsPanel(blueprint3d, sideMenu);
   var styleDetector = new StyleDetector(blueprint3d, sideMenu);
+  var undoRedo            = new UndoRedo(blueprint3d, sideMenu);
+  var measurementOverlay  = new MeasurementOverlay(blueprint3d);
+  var copyPaste           = new CopyPaste(blueprint3d, sideMenu);
+  var spaceUtilization  = new SpaceUtilization(blueprint3d, sideMenu);
+  var gradientWallPainter = new GradientWallPainter(blueprint3d, sideMenu);
   window.floorsPanel = floorsPanel;
 
   if (window.initBlueprintVR) {
